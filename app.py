@@ -4,19 +4,15 @@ import requests
 from io import StringIO
 
 # ──────────────────────────  PAGE CONFIG  ──────────────────────────────────────
-st.set_page_config(
-    page_title="Disneyland Eats :p",
-    page_icon="🎡",
-    layout="wide",
-)
+st.set_page_config(page_title="Disney Eats", page_icon="🎡", layout="wide")
 
-# ─────────────────────────  GLOBAL CSS / THEMING  ──────────────────────────────
+# ─────────────────────────  GLOBAL THEME / CSS  ────────────────────────────────
 st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Quicksand:wght@400;600&display=swap');
 
-    /* Slow animated gradient (60 s) */
+    /* --- animated gradient background --- */
     html,body,[data-testid="stApp"]{
         height:100%;
         background:linear-gradient(-45deg,#231557,#44107a,#ff1361,#fff800);
@@ -31,13 +27,11 @@ st.markdown(
         100%{background-position:0% 50%;}
     }
 
-    header[data-testid="stHeader"]{display:none;}         /* hide default header */
+    header[data-testid="stHeader"]{display:none;}
 
-    #filter-box{position:sticky;top:0.5rem;z-index:998;}  /* sticky controls */
+    #filter-box{position:sticky;top:.5rem;z-index:998;}
 
-    .stRadio>label,.stSelectbox label{
-        font-weight:600;font-size:1.05rem;color:#fffb;
-    }
+    .stRadio>label,.stSelectbox label{font-weight:600;font-size:1.05rem;color:#fffb;}
 
     h1,h2,h3{
         font-family:'Luckiest Guy',cursive;
@@ -45,6 +39,7 @@ st.markdown(
         text-shadow:2px 2px 2px #0006;
     }
 
+    /* --- glass-blur cards --- */
     .food-card{
         background:rgba(255,255,255,0.15);
         backdrop-filter:blur(6px);
@@ -53,26 +48,35 @@ st.markdown(
         padding:1rem 1.5rem;
         margin-bottom:1.2rem;
         box-shadow:0 6px 20px -6px #0007;
-        transition:transform .25s, box-shadow .25s;
+        transition:transform .25s,box-shadow .25s;
     }
     .food-card:hover{
         transform:translateY(-4px) scale(1.02);
         box-shadow:0 8px 24px -6px #000a;
     }
-
     .food-card ul{list-style:none;padding-left:0;margin:0;}
     .food-card li{margin:0.25rem 0;}
 
+    /* priority pill */
     .prio{
-        color:#000;font-weight:700;padding:2px 8px;border-radius:12px;
+        color:#000;padding:2px 8px;border-radius:12px;font-weight:700;
         display:inline-block;min-width:24px;text-align:center;
     }
 
+    /* light-grey select field */
+    .stSelectbox div[data-baseweb="select"]{
+        background:#f5f5f5 !important;color:#000 !important;border-radius:10px;
+    }
+    .stSelectbox svg,
+    .stSelectbox div[data-baseweb="select"] *{color:#000 !important;}
+
+    /* scrollbar */
     ::-webkit-scrollbar{width:10px;}
     ::-webkit-scrollbar-track{background:transparent;}
     ::-webkit-scrollbar-thumb{background:#ff1361aa;border-radius:8px;}
     ::-webkit-scrollbar-thumb:hover{background:#ff1361;}
 
+    /* corner Lottie */
     #lottie-container{
         position:fixed;top:.5rem;right:.5rem;width:160px;
         z-index:999;pointer-events:none;
@@ -101,20 +105,18 @@ CSV_URL  = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv
 
 @st.cache_data(ttl=300)
 def load_data() -> pd.DataFrame:
-    resp = requests.get(CSV_URL)
-    resp.raise_for_status()
-    return pd.read_csv(StringIO(resp.content.decode("utf-8")))
+    r = requests.get(CSV_URL); r.raise_for_status()
+    return pd.read_csv(StringIO(r.content.decode("utf-8")))
 
 df = load_data()
 
-# Ensure flag exists
-if "just_refreshed" not in st.session_state:
-    st.session_state.just_refreshed = False
+# make sure flag exists
+st.session_state.setdefault("just_refreshed", False)
 
-# ──────────────────────────  HELPER: PRIORITY BADGE  ───────────────────────────
-def prio_badge(p: int) -> str:
-    palette = {1: "#ffdd57", 2: "#66e0ff", 3: "#ff7f7f"}  # customise colours
-    return f"<span class='prio' style='background:{palette.get(p, '#999')}'>{p}</span>"
+# ──────────────────────────  HELPERS  ──────────────────────────────────────────
+def prio_badge(p:int)->str:
+    palette={1:"#ffdd57",2:"#66e0ff",3:"#ff7f7f"}
+    return f"<span class='prio' style='background:{palette.get(p,'#999')}'>{p}</span>"
 
 # ──────────────────────────  UI CONTROLS  ──────────────────────────────────────
 st.title("🍿 Disney Eats 🍿")
@@ -128,11 +130,9 @@ areas      = sorted(data["Area"].dropna().unique())
 priorities = sorted(data["Priority"].unique())
 
 with st.expander("🎯 Filter by Area & Priority"):
-    c1, c2 = st.columns(2)
-    with c1:
-        area = st.selectbox("Area", ["All"] + areas)
-    with c2:
-        prio = st.selectbox("Priority", ["All"] + [str(p) for p in priorities])
+    c1,c2 = st.columns(2)
+    with c1: area = st.selectbox("Area", ["All"] + areas)
+    with c2: prio = st.selectbox("Priority", ["All"] + [str(p) for p in priorities])
 
 st.markdown('</div>', unsafe_allow_html=True)  # close sticky container
 
@@ -143,14 +143,18 @@ if prio != "All":
 
 data = data.sort_values("Price")
 
-# ──────────────────────────  REFRESH BUTTON + CONFETTI  ────────────────────────
+# ──────────────────────────  REFRESH BUTTON  ───────────────────────────────────
 if st.button("🔄 Refresh Menu"):
     st.cache_data.clear()
     st.session_state.just_refreshed = True
-    st.experimental_rerun()
+    # use new stable API; fall back if user runs an old Streamlit
+    if hasattr(st, "rerun"):
+        st.rerun()
+    else:
+        st.experimental_rerun()   # legacy fallback
 
 # ──────────────────────────  FOOD LIST  ────────────────────────────────────────
-st.markdown("## To Try…")
+st.markdown("## 🍽️ To Try…")
 
 for _, row in data.iterrows():
     st.markdown(
@@ -158,17 +162,21 @@ for _, row in data.iterrows():
         <div class="food-card">
           <h3>{row['Food'] or 'Unnamed Item'}</h3>
           <ul>
-            <li><strong>Price:</strong> ${row['Price']:.2f}</li>
-            <li><strong>Location:</strong> {row['Location'] or 'Not listed'}</li>
-            <li><strong>Area:</strong> {row['Area'] or 'Not listed'}</li>
-            <li><strong>Priority:</strong> {prio_badge(row['Priority'])}</li>
+            <li><strong>💵 Price:</strong> ${row['Price']:.2f}</li>
+            <li><strong>📍 Location:</strong> {row['Location'] or 'Not listed'}</li>
+            <li><strong>🗺️ Area:</strong> {row['Area'] or 'Not listed'}</li>
+            <li><strong>🔢 Priority:</strong> {prio_badge(row['Priority'])}</li>
           </ul>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-# ──────────────────────────  ONE-TIME BALLOONS AFTER REFRESH  ──────────────────
-if st.session_state.just_refreshed:
+# ── One-time welcome balloons ────────────────────────────────────────────────
+if "welcome_shown" not in st.session_state:
+    st.session_state.welcome_shown = False
+
+if not st.session_state.welcome_shown:
     st.balloons()
-    st.session_state.just_refreshed = False
+    st.session_state.welcome_shown = True
+
