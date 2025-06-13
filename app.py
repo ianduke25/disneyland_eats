@@ -63,12 +63,57 @@ st.markdown(
         display:inline-block;min-width:24px;text-align:center;
     }
 
-    /* light-grey select field */
-    .stSelectbox div[data-baseweb="select"]{
-        background:#f5f5f5 !important;color:#000 !important;border-radius:10px;
+    /* Area filter container styling - removed since not using container box */
+    
+    /* Checkbox styling */
+    .stCheckbox {
+        margin-bottom: 0.8rem !important;
     }
-    .stSelectbox svg,
-    .stSelectbox div[data-baseweb="select"] *{color:#000 !important;}
+    
+    .stCheckbox label {
+        color: #fff !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+        font-size: 1.05rem !important;
+        cursor: pointer !important;
+    }
+    
+    .stCheckbox input[type="checkbox"] {
+        transform: scale(1.2) !important;
+        margin-right: 0.5rem !important;
+        accent-color: #ff1361 !important;
+    }
+    
+    .stCheckbox div {
+        background: rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 0.8rem !important;
+        transition: all 0.2s ease !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+    }
+    
+    .stCheckbox div:hover {
+        background: rgba(255,255,255,0.2) !important;
+        transform: translateX(4px) !important;
+    }
+    
+    /* Radio button styling for glass effect */
+    .stRadio div[role="radiogroup"] {
+        background: rgba(255,255,255,0.25) !important;
+        backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(255,255,255,0.35) !important;
+        border-radius: 14px !important;
+        padding: 1rem !important;
+        box-shadow: 0 6px 20px -6px rgba(0,0,0,0.3) !important;
+    }
+    
+    .stRadio div[role="radiogroup"] label {
+        color: #fff !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+        font-weight: 600 !important;
+    }
+
+    /* Expander styling - removed since we're not using it anymore */
 
     /* scrollbar */
     ::-webkit-scrollbar{width:10px;}
@@ -126,35 +171,52 @@ st.markdown('<div id="filter-box">', unsafe_allow_html=True)
 park = st.radio("Park 🎢", ["Disneyland", "California Adventure"])
 data = df[df["Park"].str.contains(park, case=False, na=False)]
 
-areas      = sorted(data["Area"].dropna().unique())
-priorities = sorted(data["Priority"].unique())
+areas = sorted(data["Area"].dropna().unique())
 
-with st.expander("🎯 Filter by Area & Priority"):
-    c1,c2 = st.columns(2)
-    with c1: area = st.selectbox("Area", ["All"] + areas)
-    with c2: prio = st.selectbox("Priority", ["All"] + [str(p) for p in priorities])
+# Initialize session state for area filters
+if "selected_areas" not in st.session_state:
+    st.session_state.selected_areas = []  # Start with no areas selected
 
+st.markdown("### You're in ...")
+
+# Create columns for checkboxes
+num_cols = min(3, len(areas))  # Max 3 columns
+cols = st.columns(num_cols)
+
+for i, area in enumerate(areas):
+    with cols[i % num_cols]:
+        checked = st.checkbox(
+            area, 
+            value=area in st.session_state.selected_areas,
+            key=f"area_{area}"
+        )
+        if checked and area not in st.session_state.selected_areas:
+            st.session_state.selected_areas.append(area)
+        elif not checked and area in st.session_state.selected_areas:
+            st.session_state.selected_areas.remove(area)
 st.markdown('</div>', unsafe_allow_html=True)  # close sticky container
 
-if area != "All":
-    data = data[data["Area"] == area]
-if prio != "All":
-    data = data[data["Priority"] == int(prio)]
+# Filter data based on selected areas
+if st.session_state.selected_areas:
+    data = data[data["Area"].isin(st.session_state.selected_areas)]
+else:
+    # If no areas selected, show empty dataframe
+    data = data.iloc[0:0]
 
 data = data.sort_values("Priority")
 
 # ──────────────────────────  REFRESH BUTTON  ───────────────────────────────────
-if st.button("🔄 Refresh Menu"):
-    st.cache_data.clear()
-    st.session_state.just_refreshed = True
-    # use new stable API; fall back if user runs an old Streamlit
-    if hasattr(st, "rerun"):
-        st.rerun()
-    else:
-        st.experimental_rerun()   # legacy fallback
+# if st.button("🔄 Refresh Menu"):
+#     st.cache_data.clear()
+#     st.session_state.just_refreshed = True
+#     # use new stable API; fall back if user runs an old Streamlit
+#     if hasattr(st, "rerun"):
+#         st.rerun()
+#     else:
+#         st.experimental_rerun()   # legacy fallback
 
 # ──────────────────────────  FOOD LIST  ────────────────────────────────────────
-st.markdown("## 🍽️ To Try…")
+st.markdown("## So you should try…")
 
 for _, row in data.iterrows():
     st.markdown(
@@ -162,10 +224,10 @@ for _, row in data.iterrows():
         <div class="food-card">
           <h3>{row['Food'] or 'Unnamed Item'}</h3>
           <ul>
-            <li><strong>💵 Price:</strong> ${row['Price']:.2f}</li>
-            <li><strong>📍 Location:</strong> {row['Location'] or 'Not listed'}</li>
-            <li><strong>🗺️ Area:</strong> {row['Area'] or 'Not listed'}</li>
-            <li><strong>🔢 Priority:</strong> {prio_badge(row['Priority'])}</li>
+            <li><strong>Price:</strong> ${row['Price']:.2f}</li>
+            <li><strong>Location:</strong> {row['Location'] or 'Not listed'}</li>
+            <li><strong>Area:</strong> {row['Area'] or 'Not listed'}</li>
+            <li><strong>Priority:</strong> {prio_badge(row['Priority'])}</li>
           </ul>
         </div>
         """,
@@ -179,4 +241,3 @@ if "welcome_shown" not in st.session_state:
 if not st.session_state.welcome_shown:
     st.balloons()
     st.session_state.welcome_shown = True
-
