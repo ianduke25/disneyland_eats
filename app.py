@@ -30,24 +30,26 @@ data = [
 columns = ["Food", "Price", "Category", "Location", "Area", "Park", "Priority"]
 df = pd.DataFrame(data, columns=columns)
 
-# Streamlit app
+# Page config
 st.set_page_config(page_title="Disney Food Finder", layout="wide")
 
-# Page toggle
-page = st.sidebar.radio("Select Park", ["Disneyland", "California Adventure"])
+# Park toggle
+page = st.radio("Select Park", ["Disneyland", "California Adventure"])
 
-# Filter dataset
+# Filter dataset by park
 def filter_park(df, park):
     return df[df['Park'].str.contains(park, case=False, na=False)]
 
 filtered_df = filter_park(df, page)
 
-# Sidebar filters
+# Filter options
 areas = sorted(filtered_df['Area'].dropna().unique())
 priorities = sorted(filtered_df['Priority'].unique())
 
-selected_area = st.sidebar.selectbox("Select Area", ["All"] + areas)
-selected_priority = st.sidebar.selectbox("Select Priority", ["All"] + [str(p) for p in priorities])
+# Display filters in collapsible box (good for mobile)
+with st.expander("🎯 Filter by Area and Priority", expanded=False):
+    selected_area = st.selectbox("Select Area", ["All"] + areas)
+    selected_priority = st.selectbox("Select Priority", ["All"] + [str(p) for p in priorities])
 
 # Apply filters
 if selected_area != "All":
@@ -55,7 +57,7 @@ if selected_area != "All":
 if selected_priority != "All":
     filtered_df = filtered_df[filtered_df['Priority'] == int(selected_priority)]
 
-# Sort by Price (ascending)
+# Sort by price ascending
 filtered_df = filtered_df.sort_values(by="Price")
 
 # Display results
