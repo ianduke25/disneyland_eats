@@ -117,7 +117,7 @@ def prio_badge(p: int) -> str:
     return f"<span class='prio' style='background:{palette.get(p, '#999')}'>{p}</span>"
 
 # ──────────────────────────  UI CONTROLS  ──────────────────────────────────────
-st.title("🍿 Disney Eats :p")
+st.title("🍿 Disney Eats 🍿")
 
 st.markdown('<div id="filter-box">', unsafe_allow_html=True)
 
@@ -150,7 +150,7 @@ if st.button("🔄 Refresh Menu"):
     st.experimental_rerun()
 
 # ──────────────────────────  FOOD LIST  ────────────────────────────────────────
-st.markdown("## 🍽️ To Try…")
+st.markdown("## To Try…")
 
 for _, row in data.iterrows():
     st.markdown(
@@ -158,10 +158,10 @@ for _, row in data.iterrows():
         <div class="food-card">
           <h3>{row['Food'] or 'Unnamed Item'}</h3>
           <ul>
-            <li><strong>💵 Price:</strong> ${row['Price']:.2f}</li>
-            <li><strong>📍 Location:</strong> {row['Location'] or 'Not listed'}</li>
-            <li><strong>🗺️ Area:</strong> {row['Area'] or 'Not listed'}</li>
-            <li><strong>🔢 Priority:</strong> {prio_badge(row['Priority'])}</li>
+            <li><strong>Price:</strong> ${row['Price']:.2f}</li>
+            <li><strong>Location:</strong> {row['Location'] or 'Not listed'}</li>
+            <li><strong>Area:</strong> {row['Area'] or 'Not listed'}</li>
+            <li><strong>Priority:</strong> {prio_badge(row['Priority'])}</li>
           </ul>
         </div>
         """,
