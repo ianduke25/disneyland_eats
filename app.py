@@ -1,37 +1,53 @@
 import streamlit as st
 import pandas as pd
-
-# Sample data
-data = [
-    ["🫔 Breakfast Chimichanga", 7.49, "Breakfast", "Ship to Shore Marketplace", "Frontierland", "Disneyland", 1],
-    ["🫓  fried Fried Pickle Chips (NOT SPEARS)", 5.79, "Snack", "Smokejumpers Grill", "Buena Vista Street / Grizzly Peak", "California Adventure", 1],
-    ["🍿 Popcorn Bucket", 14.25, "Snack", "", "", "Disneyland / California Adventure", 1],
-    ["🍪 Chocolate Chip Cookies", 6.79, "Snack", "Harbour Gallery", "New Orleans Square", "Disneyland", 1],
-    ["Churro", 5.75, "Snack", "", "", "Disneyland / California Adventure", 1],
-    ["🍍 Pineapple Upside Down Sundae", 8.49, "Snack", "Tropical Hideaway", "Adventureland", "Disneyland", 1],
-    ["🥖 Cheesy Garlic Pretzel Bread", 7.99, "Snack", "Edelweiss Snacks", "Fantasyland", "Disneyland", 1],
-    ["☕️ Black Caf Cold Brew", 7.29, "Drink", "Docking Bay 7", "Star Wars: Galaxy's Edge", "Disneyland", 1],
-    ["🍹 Secret Menu Cocktails", 15.00, "Drink", "Lamplight Lounge", "Pixar Pier", "California Adventure", 1],
-    ["🍟 Space Place Cottage Fries", 9.49, "Snack", "Galactic Grill", "Tomorrowland", "Disneyland", 1],
-    ["🌯 Soyrizo Breakfast Burrito", 10.99, "Breakfast", "Galactic Grill", "Tomorrowland", "Disneyland", 2],
-    ["🥨 Cream Cheese Jalapeno Pretzel", 7.5, "Snack", "Cart near Star Tours", "Tomorrowland", "Disneyland", 2],
-    ["🥕 Rontoless Garden Wrap", 14.49, "Lunch", "Ronto Roasters", "Star Wars: Galaxy's Edge", "Disneyland", 2],
-    ["🍨 Dole Whip", 6.49, "Snack", "Tropical Hideaway", "Adventureland", "Disneyland", 2],
-    ["🥤 Mint Julep", 6.49, "Drink", "Mint Julep Bar", "New Orleans Square", "Disneyland", 2],
-    ["🍩 Mickey Beignets", 6.99, "Snack", "Mint Julep Bar", "New Orleans Square", "Disneyland", 2],
-    ["🍑 Peach Cobbler Funnel Cake Fries", 9.99, "Snack", "Hungry Bear Jamboree", "Bayou Country", "Disneyland", 2],
-    ["🍌 Banana Split Churro", 7.5, "Snack", "Churro Cart near Goofys Sky School", "Paradise Gardens Park", "California Adventure", 2],
-    ["🥒  Pickle", 4.49, "Snack", "", "", "Disneyland", 3],
-    ["🍲 Corn Soup", 12.99, "Lunch", "Harbour Gallery", "New Orleans Square", "Disneyland", 3],
-    ["🥟 Ithorian Garden Patty Bun", 10.99, "Lunch", "Docking Bay 7", "Star Wars: Galaxy's Edge", "Disneyland", 3],
-    ["⛰️ Celebration Matterhorn Macaroon", 8.29, "Snack", "Jolly Holliday", "Main Street", "Disneyland", 3],
-]
-
-columns = ["Food", "Price", "Category", "Location", "Area", "Park", "Priority"]
-df = pd.DataFrame(data, columns=columns)
+import requests
+from io import StringIO
 
 # Page config
 st.set_page_config(page_title="Disney Food Finder", layout="wide")
+
+# Google Sheets URL (using published CSV format for better emoji support)
+SHEET_ID = "1RdbRqKf16xl57QhQau1UuLr4Hj2OEiy4etDsbLIF9fw"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def load_data():
+    """Load data from Google Sheets"""
+    response = requests.get(SHEET_URL)
+    response.raise_for_status()
+    response.encoding = 'utf-8'
+    
+    # Read CSV data with proper encoding
+    csv_data = StringIO(response.text)
+    df = pd.read_csv(csv_data)
+    
+    # Add 'Tried' column if it doesn't exist
+    if 'Tried' not in df.columns:
+        df['Tried'] = False
+    
+    return df
+
+# Initialize session state for tried items
+if 'tried_items' not in st.session_state:
+    st.session_state.tried_items = set()
+
+# Load data
+df = load_data()
+
+# Statistics banner at top
+total_items = len(df)
+tried_count = len([idx for idx in df.index if idx in st.session_state.tried_items])
+completion_rate = (tried_count / total_items) * 100 if total_items > 0 else 0
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("Total Items", total_items)
+with col2:
+    st.metric("Items Tried", tried_count)
+with col3:
+    st.metric("Completion Rate", f"{completion_rate:.1f}%")
+
+st.markdown("---")
 
 # Park toggle
 page = st.radio("Select Park", ["Disneyland", "California Adventure"])
@@ -48,8 +64,11 @@ priorities = sorted(filtered_df['Priority'].unique())
 
 # Display filters in collapsible box (good for mobile)
 with st.expander("🎯 Filter by Area and Priority", expanded=False):
-    selected_area = st.selectbox("Select Area", ["All"] + areas)
-    selected_priority = st.selectbox("Select Priority", ["All"] + [str(p) for p in priorities])
+    col1, col2 = st.columns(2)
+    with col1:
+        selected_area = st.selectbox("Select Area", ["All"] + list(areas))
+    with col2:
+        selected_priority = st.selectbox("Select Priority", ["All"] + [str(p) for p in priorities])
 
 # Apply filters
 if selected_area != "All":
@@ -61,12 +80,50 @@ if selected_priority != "All":
 filtered_df = filtered_df.sort_values(by="Price")
 
 # Display results
-st.title(f"🍽️ {page} Eats :p")
-for _, row in filtered_df.iterrows():
+st.title(f"🍽️ {page} Eats")
+
+# Add refresh and reset buttons
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("🔄 Refresh Data"):
+        st.cache_data.clear()
+        st.rerun()
+with col2:
+    if st.button("Reset All Progress"):
+        st.session_state.tried_items.clear()
+        st.success("Progress reset!")
+        st.rerun()
+
+# Display food items
+for idx, row in filtered_df.iterrows():
     with st.container():
-        st.markdown(f"### {row['Food'] or '*Unnamed Item*'}")
-        st.markdown(f"- 💵 **Price**: ${row['Price']:.2f}")
-        st.markdown(f"- 📍 **Location**: {row['Location'] or '*Not listed*'}")
-        st.markdown(f"- 🗺️ **Area**: {row['Area'] or '*Not listed*'}")
-        st.markdown(f"- 🔢 **Priority**: {row['Priority']}")
+        # Create columns for layout
+        col1, col2 = st.columns([4, 1])
+        
+        with col1:
+            # Check if item is marked as tried
+            is_tried = idx in st.session_state.tried_items or row.get('Tried', False)
+            
+            if is_tried:
+                st.markdown(f"### {row['Food'] or '*Unnamed Item*'} ✅ **Tried!**")
+            else:
+                st.markdown(f"### {row['Food'] or '*Unnamed Item*'}")
+            
+            st.markdown(f"- 💵 **Price**: ${row['Price']:.2f}")
+            st.markdown(f"- 📍 **Location**: {row['Location'] or '*Not listed*'}")
+            st.markdown(f"- 🗺️ **Area**: {row['Area'] or '*Not listed*'}")
+            st.markdown(f"- 🔢 **Priority**: {row['Priority']}")
+        
+        with col2:
+            # Mark as tried button
+            if not is_tried:
+                if st.button("Mark as Tried", key=f"try_{idx}", type="primary"):
+                    st.session_state.tried_items.add(idx)
+                    st.success(f"Marked '{row['Food']}' as tried!")
+                    st.rerun()
+            else:
+                if st.button("Unmark", key=f"untry_{idx}", type="secondary"):
+                    st.session_state.tried_items.discard(idx)
+                    st.rerun()
+        
         st.markdown("---")
