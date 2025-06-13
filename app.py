@@ -119,7 +119,7 @@ def prio_badge(p:int)->str:
     return f"<span class='prio' style='background:{palette.get(p,'#999')}'>{p}</span>"
 
 # ──────────────────────────  UI CONTROLS  ──────────────────────────────────────
-st.title("🍿 Disney Eats 🍿")
+st.title("🍿Disney Eats🍿")
 
 st.markdown('<div id="filter-box">', unsafe_allow_html=True)
 
