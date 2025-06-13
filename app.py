@@ -141,7 +141,7 @@ if area != "All":
 if prio != "All":
     data = data[data["Priority"] == int(prio)]
 
-data = data.sort_values("Price")
+data = data.sort_values("Priority")
 
 # ──────────────────────────  REFRESH BUTTON  ───────────────────────────────────
 if st.button("🔄 Refresh Menu"):
