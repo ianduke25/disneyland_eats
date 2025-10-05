@@ -125,18 +125,6 @@ header[data-testid="stHeader"] { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────  CORNER HALLOWEEN LOTTIE  ───────────────────────────
-components.html("""
-<div id="lottie-container"
-     style="position:fixed;top:.5rem;right:.5rem;width:160px;z-index:999;pointer-events:none;">
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-  <lottie-player autoplay loop speed="0.8"
-                 src="https://assets2.lottiefiles.com/private_files/lf30_kvdn44jg.json">
-  </lottie-player>
-</div>
-""", height=200)
-
-
 # ──────────────────────────  DATA LOAD  ────────────────────────────────────────
 SHEET_ID = "1RdbRqKf16xl57QhQau1UuLr4Hj2OEiy4etDsbLIF9fw"
 CSV_URL  = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid=0"
