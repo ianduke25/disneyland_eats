@@ -147,16 +147,35 @@ CSV_URL  = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv
 
 @st.cache_data(ttl=300)
 def load_data() -> pd.DataFrame:
-    r = requests.get(CSV_URL)
-    r.raise_for_status()
+    """
+    Load Disney Halloween Adventure data from Google Sheets CSV,
+    ensuring numeric columns are properly cleaned and missing columns are handled.
+    """
+    try:
+        r = requests.get(CSV_URL)
+        r.raise_for_status()
+    except requests.RequestException as e:
+        st.error(f"Failed to load data: {e}")
+        return pd.DataFrame()  # Return empty DataFrame on failure
+
     df = pd.read_csv(StringIO(r.content.decode("utf-8")))
 
-    # Ensure "Eats?" column exists and is numeric
-    if "Eats?" not in df.columns:
-        df["Eats?"] = 1
-    df["Eats?"] = pd.to_numeric(df["Eats?"], errors="coerce").fillna(1).astype(int)
+    # ── Ensure numeric columns exist and are clean ─────────
+    for col, default in [("Eats?", 1), ("Priority", 3)]:
+        if col not in df.columns:
+            df[col] = default
+        else:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(default).astype(int)
+
+    # ── Ensure essential string columns exist ─────────────
+    for col in ["Park", "Area", "Food", "Location"]:
+        if col not in df.columns:
+            df[col] = "Not listed"
+        else:
+            df[col] = df[col].fillna("Not listed")
 
     return df
+
 
 df = load_data()
 st.session_state.setdefault("just_refreshed", False)
