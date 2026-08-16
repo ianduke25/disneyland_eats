@@ -17,6 +17,19 @@
   const CHECKLIST_POLL_MS = 30000;
   const CHECKED_STORAGE_KEY = "disneyEats.checked.v1";
 
+  // Photo for each reservation venue, keyed by lowercased name with accents
+  // stripped (see normalizeName). Add a URL to show a photo on that
+  // reservation's row; leave blank for a plain fallback avatar instead.
+  const RESERVATION_IMAGES = {
+    "centrico": "",
+    "carthay circle lounge": "",
+    "lamplight lounge": "",
+    "lamplight lounge boardwalk": "",
+    "carnation cafe": "",
+    "blue bayou": "",
+    "fantasmic dining package": "",
+  };
+
   const state = {
     tab: "eats", // "eats" | "adventures" | "reservations"
     park: "Disneyland",
@@ -137,6 +150,26 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
 
+  function normalizeName(s) {
+    return (s ?? "")
+      .toString()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "") // strip accents, e.g. "Céntrico" -> "Centrico"
+      .trim()
+      .toLowerCase();
+  }
+
+  function findReservationImage(name) {
+    const normalized = normalizeName(name);
+    if (RESERVATION_IMAGES[normalized]) return RESERVATION_IMAGES[normalized];
+    // Fall back to a partial match, e.g. "Lamplight Lounge Boardwalk Dining"
+    // should still match a "lamplight lounge" entry if no exact one exists.
+    const match = Object.keys(RESERVATION_IMAGES).find(
+      (key) => RESERVATION_IMAGES[key] && (normalized.includes(key) || key.includes(normalized))
+    );
+    return match ? RESERVATION_IMAGES[match] : "";
+  }
+
   function cleanReservationRow(raw) {
     const str = (val, fallback) => {
       const s = (val ?? "").toString().trim();
@@ -144,8 +177,9 @@
     };
     const dateObj = parseDateCell(raw.date ?? raw.Date);
     const minutes = parseMilitaryTime(raw.time ?? raw.Time);
+    const reservation = str(raw.reservation ?? raw.Reservation, "Reservation");
     return {
-      Reservation: str(raw.reservation ?? raw.Reservation, "Reservation"),
+      Reservation: reservation,
       Area: str(raw.area ?? raw.Area, "Not listed"),
       DateObj: dateObj,
       DateKey: dateKey(dateObj),
@@ -155,6 +189,7 @@
       Minutes: minutes,
       TimeLabel: formatMinutes(minutes),
       Conflict: false,
+      ImageUrl: findReservationImage(reservation),
     };
   }
 
@@ -302,10 +337,38 @@
     input.addEventListener("change", () => toggleChecked(input.dataset.key));
   }
 
+  function reservationThumbEl(r) {
+    const initial = (r.Reservation.trim().charAt(0) || "?").toUpperCase();
+
+    if (!r.ImageUrl) {
+      const fallback = document.createElement("span");
+      fallback.className = "resv-row__thumb resv-row__thumb--fallback";
+      fallback.textContent = initial;
+      return fallback;
+    }
+
+    const img = document.createElement("img");
+    img.className = "resv-row__thumb";
+    img.src = r.ImageUrl;
+    img.alt = "";
+    img.loading = "lazy";
+    img.addEventListener("error", () => {
+      const fallback = document.createElement("span");
+      fallback.className = "resv-row__thumb resv-row__thumb--fallback";
+      fallback.textContent = initial;
+      img.replaceWith(fallback);
+    });
+    return img;
+  }
+
   function reservationRowEl(r) {
     const row = document.createElement("div");
     row.className = "resv-row" + (r.Conflict ? " is-conflict" : "");
-    row.innerHTML = `
+    row.appendChild(reservationThumbEl(r));
+
+    const main = document.createElement("span");
+    main.className = "resv-row__main";
+    main.innerHTML = `
       <span class="resv-row__time">${escapeHtml(r.TimeLabel)}</span>
       <span class="resv-row__body">
         <span class="resv-row__name">${escapeHtml(r.Reservation)}</span>
@@ -313,6 +376,7 @@
       </span>
       ${r.Conflict ? '<span class="conflict-badge">Conflict</span>' : ""}
     `;
+    row.appendChild(main);
     return row;
   }
 

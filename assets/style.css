@@ -63,14 +63,6 @@ body {
   color: var(--text-primary);
 }
 
-.subtitle {
-  max-width: 560px;
-  margin: 0.6rem 0 0;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
 /* ─────────── MAIN / TABS ─────────── */
 main {
   max-width: var(--max-width);
@@ -177,6 +169,33 @@ main {
 .resv-row.is-conflict {
   border-color: var(--red);
   background: var(--red-tint);
+}
+
+.resv-row__thumb {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--surface-variant);
+}
+
+.resv-row__thumb--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-tint);
+  color: var(--blue);
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+.resv-row__main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .resv-row__time {
