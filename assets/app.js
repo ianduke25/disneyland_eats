@@ -7,11 +7,11 @@
   const RESV_SHEET_ID = "1ErgL07yP9WRYNYWGNDxO0HcIesfilckC94NFlYX5pzU";
   const RESV_CSV_URL = `https://docs.google.com/spreadsheets/d/${RESV_SHEET_ID}/export?format=csv&gid=0`;
 
-  // Deploy assets/checklist-api.gs as a Google Apps Script web app (see
-  // README) and paste the deployment URL here to sync "tried it" checkmarks
-  // across the whole group. Leave blank to keep checkmarks local to this
-  // browser only.
-  const CHECKLIST_API_URL = "";
+  // Deploy google-apps-script/checklist-api.gs as a Google Apps Script web
+  // app (see README) and paste the deployment URL here to sync "tried it"
+  // checkmarks across the whole group. Leave blank to keep checkmarks local
+  // to this browser only.
+  const CHECKLIST_API_URL = "https://script.google.com/macros/s/AKfycbx5oVkfeeIaj9WCJdApev8QYfQ32pLBE_eWG_a5N32NCKb5Myrps0B4Svj3MP7_CQSK/exec";
 
   const CONFLICT_WINDOW_MIN = 90;
   const CHECKLIST_POLL_MS = 30000;
