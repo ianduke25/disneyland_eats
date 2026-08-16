@@ -26,6 +26,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -73,7 +75,14 @@ body {
 main {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 1.5rem 4rem;
+  padding: 1.75rem 1.5rem 4rem;
+}
+
+.park-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .tabs {
@@ -103,6 +112,162 @@ main {
 .tab.active {
   color: var(--blue);
   border-bottom-color: var(--blue);
+}
+
+/* ─────────── TODAY PANEL ─────────── */
+.today-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow--panel { margin-bottom: 0.15rem; }
+
+.today-panel h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.today-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.today-col__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.empty-note {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.sync-note {
+  margin: 1.25rem 0 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--amber-tint);
+  color: var(--amber);
+  font-size: 0.82rem;
+}
+
+/* ─────────── RESERVATIONS ─────────── */
+.resv-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.resv-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.resv-row.is-conflict {
+  border-color: var(--red);
+  background: var(--red-tint);
+}
+
+.resv-row__time {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.resv-row__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resv-row__name {
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.resv-row__area {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.conflict-badge {
+  flex-shrink: 0;
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.resv-date-heading {
+  margin: 1.5rem 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.resv-date-heading:first-child { margin-top: 0; }
+
+.resv-list--full { display: flex; flex-direction: column; }
+
+/* ─────────── PICK LIST (Today panel top picks) ─────────── */
+.pick-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.pick-row__name {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.pick-row__meta {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ─────────── TRIED-IT CHECKBOX ─────────── */
+.tried-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.tried-toggle input[type="checkbox"] {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--blue);
+  cursor: pointer;
 }
 
 /* ─────────── FILTER BAR ─────────── */
@@ -266,6 +431,21 @@ main {
   color: var(--text-secondary);
 }
 
+.food-card .tried-toggle {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.food-card.is-checked {
+  background: var(--surface-variant);
+}
+
+.food-card.is-checked h3 {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
 .prio {
   flex-shrink: 0;
   display: inline-flex;
@@ -303,6 +483,11 @@ main {
   font-size: 0.82rem;
 }
 
+@media (max-width: 720px) {
+  .today-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
 @media (max-width: 560px) {
   .panel { padding: 0; }
+  .today-panel { padding: 1.25rem; }
 }
