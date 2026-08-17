@@ -10,6 +10,9 @@
   --blue: #1a73e8;
   --blue-hover: #1765cc;
   --blue-tint: #e8f0fe;
+  --accent: #d1477a;
+  --accent-tint: #fce8f0;
+  --font-display: "Fredoka", "Roboto", sans-serif;
   --green: #137333;
   --green-tint: #e6f4ea;
   --amber: #b06000;
@@ -22,6 +25,12 @@
   --shadow-1: 0 1px 2px 0 rgba(60, 64, 67, 0.30), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
   --shadow-2: 0 1px 3px 0 rgba(60, 64, 67, 0.30), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
   --max-width: 1080px;
+}
+
+/* ── SEASONAL THEME: Halloween — toggle via SEASONAL_THEME in app.js ── */
+.theme-halloween {
+  --accent: #c2410c;
+  --accent-tint: #fdf0e6;
 }
 
 * { box-sizing: border-box; }
@@ -57,7 +66,8 @@ body {
 
 .site-header h1 {
   margin: 0;
-  font-weight: 400;
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: clamp(1.9rem, 4vw, 2.6rem);
   line-height: 1.2;
   color: var(--text-primary);
@@ -89,7 +99,7 @@ main {
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-family: inherit;
+  font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 500;
   padding: 0.9rem 1rem;
@@ -110,17 +120,20 @@ main {
 .today-panel {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.75rem 1.75rem;
   margin-bottom: 2rem;
+  transition: border-top-color 0.2s ease;
 }
 
-.eyebrow--panel { margin-bottom: 0.15rem; }
+.eyebrow--panel { margin-bottom: 0.15rem; color: var(--accent); transition: color 0.2s ease; }
 
 .today-panel h2 {
   margin: 0 0 1.25rem;
+  font-family: var(--font-display);
   font-size: 1.4rem;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
@@ -236,6 +249,7 @@ main {
 
 .resv-date-heading {
   margin: 1.5rem 0 0.6rem;
+  font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-primary);
@@ -285,8 +299,19 @@ main {
 .tried-toggle input[type="checkbox"] {
   width: 1.05rem;
   height: 1.05rem;
-  accent-color: var(--blue);
+  accent-color: var(--accent);
   cursor: pointer;
+  transition: accent-color 0.2s ease;
+}
+
+.tried-toggle input[type="checkbox"].pop {
+  animation: checkbox-pop 0.2s ease;
+}
+
+@keyframes checkbox-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 /* ─────────── FILTER BAR ─────────── */
@@ -385,6 +410,7 @@ main {
 
 .results-header h2 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 500;
   color: var(--text-primary);
@@ -408,12 +434,13 @@ main {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.1rem 1.25rem;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .food-card:hover {
   box-shadow: var(--shadow-1);
   border-color: transparent;
+  transform: translateY(-2px);
 }
 
 .food-card__header {

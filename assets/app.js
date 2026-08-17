@@ -17,6 +17,12 @@
   const CHECKLIST_POLL_MS = 30000;
   const CHECKED_STORAGE_KEY = "disneyEats.checked.v1";
 
+  // Seasonal decoration (accent color + favicon). Set to "" to turn off.
+  const SEASONAL_THEME = "halloween";
+  const SEASONAL_FAVICONS = {
+    halloween: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎃</text></svg>",
+  };
+
   // Photo for each reservation venue, keyed by lowercased name with accents
   // stripped (see normalizeName). Add a URL to show a photo on that
   // reservation's row; leave blank for a plain fallback avatar instead.
@@ -38,6 +44,11 @@
     reservations: [],
     checked: new Map(), // key -> boolean
   };
+
+  // Key of the checkbox that was just toggled by the user, so the render
+  // pass can play a brief "pop" animation on it. Cleared right after that
+  // render so a later poll/re-render doesn't replay it.
+  let lastToggledKey = null;
 
   const els = {
     parkToggle: document.getElementById("park-toggle"),
@@ -339,7 +350,9 @@
     const next = !state.checked.get(key);
     state.checked.set(key, next);
     saveLocalChecked();
+    lastToggledKey = key;
     renderAll();
+    lastToggledKey = null;
 
     if (!CHECKLIST_API_URL) return;
     try {
@@ -375,9 +388,10 @@
   }
 
   function checkboxHtml(key, checked) {
+    const pop = key === lastToggledKey ? " pop" : "";
     return `
       <label class="tried-toggle">
-        <input type="checkbox" data-key="${escapeHtml(key)}" ${checked ? "checked" : ""} />
+        <input type="checkbox" class="${pop.trim()}" data-key="${escapeHtml(key)}" ${checked ? "checked" : ""} />
         <span>Tried it</span>
       </label>
     `;
@@ -630,8 +644,17 @@
     });
   }
 
+  function applySeasonalTheme() {
+    if (!SEASONAL_THEME) return;
+    document.body.classList.add(`theme-${SEASONAL_THEME}`);
+    const favicon = SEASONAL_FAVICONS[SEASONAL_THEME];
+    const link = document.querySelector('link[rel="icon"]');
+    if (favicon && link) link.href = favicon;
+  }
+
   // ─────────────────────────  INIT  ─────────────────────────
   async function init() {
+    applySeasonalTheme();
     bindEvents();
     loadLocalChecked();
     try {
