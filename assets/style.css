@@ -189,6 +189,7 @@ main {
   align-items: center;
   gap: 0.75rem;
   padding: 0.6rem 0.75rem;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
@@ -281,6 +282,7 @@ main {
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
@@ -331,6 +333,9 @@ main {
 /* ─────────── FILTER BAR ─────────── */
 .panel {
   background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
 }
 
 .filter-bar {
@@ -552,6 +557,6 @@ main {
 }
 
 @media (max-width: 560px) {
-  .panel { padding: 0; }
+  .panel { padding: 1.25rem; }
   .today-panel { padding: 1.25rem; }
 }
