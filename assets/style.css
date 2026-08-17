@@ -126,7 +126,7 @@ main {
 
 .today-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 2rem;
 }
 
@@ -502,7 +502,11 @@ main {
   font-size: 0.82rem;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 920px) {
+  .today-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
   .today-grid { grid-template-columns: 1fr; gap: 1.5rem; }
 }
 

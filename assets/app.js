@@ -25,7 +25,7 @@
     "carthay circle lounge": "https://d23.com/app/uploads/2013/04/1180w-600h_a-to-z-carthay-circle.jpg",
     "lamplight lounge": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQF3fYqrzp7uQQQKsqy8HxeMQfcIuEwHmhHmK5QaJCtODSzua2QV1Vsqgw&s=10",
     "lamplight lounge boardwalk": "https://www.disneyfoodblog.com/wp-content/uploads/2021/03/2020-disneyland-dca-california-adventure-pixar-pier-lamplight-lounge-atmo-2.jpg",
-    "carnation cafe": "https://static.wikia.nocookie.net/disney/images/6/65/Carnation_Cafe_2012.png/revision/latest?cb=20130706185441",
+    "carnation cafe": "https://i0.wp.com/live.staticflickr.com/65535/50012186097_8f3c485c40_b.jpg?resize=1024%2C683&ssl=1",
     "blue bayou": "https://disneylanddaily.com/wp-content/uploads/2017/08/IMG_2450-2.jpg",
     "fantasmic dining package": "https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1600/900/75/dam/wdpro-assets/dlr/parks-and-tickets/entertainment/disneyland/fantasmic/fantasmic-02.jpg?1785252442313",
   };
@@ -54,8 +54,10 @@
     todayDate: document.getElementById("today-date"),
     todayReservations: document.getElementById("today-reservations"),
     todayResvEmpty: document.getElementById("today-resv-empty"),
-    todayPicks: document.getElementById("today-picks"),
-    todayPicksEmpty: document.getElementById("today-picks-empty"),
+    todayPicksFood: document.getElementById("today-picks-food"),
+    todayPicksFoodEmpty: document.getElementById("today-picks-food-empty"),
+    todayPicksAdventures: document.getElementById("today-picks-adventures"),
+    todayPicksAdventuresEmpty: document.getElementById("today-picks-adventures-empty"),
     syncNote: document.getElementById("sync-note"),
   };
 
@@ -76,6 +78,15 @@
     return div.innerHTML;
   }
 
+  // Looks up a CSV column by name, ignoring case and stray leading/trailing
+  // whitespace in the header cell (a common copy-paste artifact in Sheets)
+  // so e.g. "Date ", "DATE", and "date" all resolve to the same field.
+  function pickField(row, name) {
+    const target = name.trim().toLowerCase();
+    const key = Object.keys(row).find((k) => k.trim().toLowerCase() === target);
+    return key === undefined ? undefined : row[key];
+  }
+
   // ─────────────────────────  EATS PARSING  ─────────────────────────
   function itemKey(park, area, food) {
     return [park, area, food].join("::").toLowerCase();
@@ -90,17 +101,29 @@
       const s = (val ?? "").toString().trim();
       return s.length ? s : fallback;
     };
-    const Park = str(raw.Park, "Not listed");
-    const Area = str(raw.Area, "Not listed");
-    const Food = str(raw.Food, "Unnamed Item");
+    // Handles both a plain 0/1 column and a Sheets checkbox column, which
+    // exports as the literal text "TRUE"/"FALSE" rather than a number —
+    // parseFloat("TRUE") is NaN, so a plain numeric parse here silently
+    // defaulted every checkbox row to "Eats", hiding real adventures.
+    const bool01 = (val, fallback) => {
+      const s = (val ?? "").toString().trim().toLowerCase();
+      if (!s) return fallback;
+      if (["true", "yes", "y"].includes(s)) return 1;
+      if (["false", "no", "n"].includes(s)) return 0;
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? (n ? 1 : 0) : fallback;
+    };
+    const Park = str(pickField(raw, "Park"), "Not listed");
+    const Area = str(pickField(raw, "Area"), "Not listed");
+    const Food = str(pickField(raw, "Food"), "Unnamed Item");
     return {
       Park,
       Area,
       Food,
-      Location: str(raw.Location, "Not listed"),
-      Price: num(raw.Price, 0),
-      Priority: Math.round(num(raw.Priority, 3)),
-      Eats: Math.round(num(raw["Eats?"], 1)),
+      Location: str(pickField(raw, "Location"), "Not listed"),
+      Price: num(pickField(raw, "Price"), 0),
+      Priority: Math.round(num(pickField(raw, "Priority"), 3)),
+      Eats: bool01(pickField(raw, "Eats?"), 1),
       Key: itemKey(Park, Area, Food),
     };
   }
@@ -140,9 +163,38 @@
   function parseDateCell(raw) {
     const s = (raw ?? "").toString().trim();
     if (!s) return null;
+
+    // Parsed manually (not via `new Date(string)`) because browsers disagree
+    // on which string formats they accept — notably Safari/iOS rejects
+    // non-zero-padded ISO dates like "2026-8-9" that Chrome parses fine,
+    // which silently turned every reservation into the same "unknown" date
+    // on iPhone. new Date(year, month, day) behaves identically everywhere.
+
+    // M/D/YYYY or M-D-YYYY (Google Sheets' default US date export format)
+    let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (m) return new Date(Number(m[3]), Number(m[1]) - 1, Number(m[2]));
+
+    // YYYY-MM-DD (ISO date-only), zero-padded or not
+    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+
+    // Google Sheets serial date (days since Dec 30 1899), in case the
+    // column isn't formatted as a date and exports as a raw number
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      const serial = parseFloat(s);
+      if (serial > 20000 && serial < 60000) {
+        const epoch = new Date(1899, 11, 30);
+        return new Date(epoch.getFullYear(), epoch.getMonth(), epoch.getDate() + Math.floor(serial));
+      }
+    }
+
+    // Last resort for anything else (e.g. "August 20, 2026")
     const native = new Date(s);
-    if (Number.isNaN(native.getTime())) return null;
-    return new Date(native.getFullYear(), native.getMonth(), native.getDate());
+    if (!Number.isNaN(native.getTime())) {
+      return new Date(native.getFullYear(), native.getMonth(), native.getDate());
+    }
+
+    return null;
   }
 
   function dateKey(d) {
@@ -175,17 +227,17 @@
       const s = (val ?? "").toString().trim();
       return s.length ? s : fallback;
     };
-    const dateObj = parseDateCell(raw.date ?? raw.Date);
-    const minutes = parseMilitaryTime(raw.time ?? raw.Time);
-    const reservation = str(raw.reservation ?? raw.Reservation, "Reservation");
+    const dateObj = parseDateCell(pickField(raw, "date"));
+    const minutes = parseMilitaryTime(pickField(raw, "time"));
+    const reservation = str(pickField(raw, "reservation"), "Reservation");
     return {
       Reservation: reservation,
-      Area: str(raw.area ?? raw.Area, "Not listed"),
+      Area: str(pickField(raw, "area"), "Not listed"),
       DateObj: dateObj,
       DateKey: dateKey(dateObj),
       DateLabel: dateObj
         ? dateObj.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
-        : str(raw.date ?? raw.Date, "Date TBD"),
+        : str(pickField(raw, "date"), "Date TBD"),
       Minutes: minutes,
       TimeLabel: formatMinutes(minutes),
       Conflict: false,
@@ -410,18 +462,26 @@
     els.todayResvEmpty.hidden = todaysResv.length !== 0;
     todaysResv.forEach((r) => els.todayReservations.appendChild(reservationRowEl(r)));
 
-    const picks = state.eats
-      .filter(
-        (r) =>
-          r.Priority === 1 &&
-          r.Park.toLowerCase().includes(state.park.toLowerCase()) &&
-          !state.checked.get(r.Key)
-      )
-      .slice(0, 6);
+    const topUnchecked = (eatsValue) =>
+      state.eats
+        .filter(
+          (r) =>
+            r.Priority === 1 &&
+            r.Eats === eatsValue &&
+            r.Park.toLowerCase().includes(state.park.toLowerCase()) &&
+            !state.checked.get(r.Key)
+        )
+        .slice(0, 6);
 
-    els.todayPicks.innerHTML = "";
-    els.todayPicksEmpty.hidden = picks.length !== 0;
-    picks.forEach((r) => els.todayPicks.appendChild(pickRowEl(r)));
+    const foodPicks = topUnchecked(1);
+    els.todayPicksFood.innerHTML = "";
+    els.todayPicksFoodEmpty.hidden = foodPicks.length !== 0;
+    foodPicks.forEach((r) => els.todayPicksFood.appendChild(pickRowEl(r)));
+
+    const adventurePicks = topUnchecked(0);
+    els.todayPicksAdventures.innerHTML = "";
+    els.todayPicksAdventuresEmpty.hidden = adventurePicks.length !== 0;
+    adventurePicks.forEach((r) => els.todayPicksAdventures.appendChild(pickRowEl(r)));
   }
 
   // ─────────────────────────  EATS / ADVENTURES TAB  ─────────────────────────
