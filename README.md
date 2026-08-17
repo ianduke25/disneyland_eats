@@ -1,4 +1,4 @@
-# Disney Eats & Adventures
+# Disneyland Planner
 
 A daily dashboard for what to eat, where to go, and what's booked at
 Disneyland Resort — built as a plain HTML/CSS/JS site for GitHub Pages.
