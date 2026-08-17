@@ -33,6 +33,20 @@
   --accent-tint: #fdf0e6;
 }
 
+/* A faded strip of Haunted Mansion Holiday behind the header — heavy
+   white gradient keeps it a background texture, not a loud banner. */
+.theme-halloween .site-header {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.93) 65%, #fff 100%),
+    url("https://cdn.cuisineandtravel.com/wp-content/uploads/2017/10/27044610/disneyland-halloween.jpg");
+}
+
+/* A small "photo sticker" of the entrance pumpkin, tucked into the header corner */
+.theme-halloween .header-badge {
+  display: block;
+  background-image: url("https://media.nbclosangeles.com/2022/06/20210902B_DLR_Mickey-Minnie-Pumpkin_MPb-1-1.jpg?quality=85&strip=all&resize=1200%2C675");
+}
+
 * { box-sizing: border-box; }
 
 [hidden] { display: none !important; }
@@ -50,10 +64,29 @@ body {
 
 /* ─────────── HEADER ─────────── */
 .site-header {
+  position: relative;
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 3rem 1.5rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+}
+
+.header-badge {
+  display: none;
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  box-shadow: var(--shadow-2);
+  background-size: cover;
+  background-position: center;
+  transform: rotate(4deg);
 }
 
 .eyebrow {
@@ -535,6 +568,7 @@ main {
 
 @media (max-width: 640px) {
   .today-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .header-badge { display: none !important; }
 }
 
 @media (max-width: 560px) {
