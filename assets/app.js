@@ -17,6 +17,8 @@
   const CHECKLIST_POLL_MS = 30000;
   const CHECKED_STORAGE_KEY = "disneyEats.checked.v1";
 
+  const TRIP_START = new Date(2026, 8, 4); // September 4, 2026
+
   // Seasonal decoration (accent color + favicon). Set to "" to turn off.
   const SEASONAL_THEME = "halloween";
   const SEASONAL_FAVICONS = {
@@ -69,8 +71,18 @@
     todayPicksFoodEmpty: document.getElementById("today-picks-food-empty"),
     todayPicksAdventures: document.getElementById("today-picks-adventures"),
     todayPicksAdventuresEmpty: document.getElementById("today-picks-adventures-empty"),
+    todayGrid: document.getElementById("today-grid"),
+    countdownBox: document.getElementById("countdown-box"),
+    countdownNumber: document.getElementById("countdown-number"),
+    countdownLabel: document.getElementById("countdown-label"),
     syncNote: document.getElementById("sync-note"),
   };
+
+  function daysUntilTrip() {
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return Math.round((TRIP_START.getTime() - todayMidnight.getTime()) / 86400000);
+  }
 
   // ─────────────────────────  STATUS  ─────────────────────────
   function setStatus(message, isError = false) {
@@ -466,6 +478,17 @@
       month: "long",
       day: "numeric",
     });
+
+    const days = daysUntilTrip();
+    const showCountdown = days > 0;
+    els.todayGrid.hidden = showCountdown;
+    els.countdownBox.hidden = !showCountdown;
+    if (showCountdown) {
+      els.countdownNumber.textContent = days;
+      els.countdownLabel.textContent = days === 1 ? "Day til Disney" : "Days til Disney";
+      showSyncNote(null); // nothing to sync yet — no checklist is showing
+      return;
+    }
 
     const todayKey = dateKey(today);
     const todaysResv = state.reservations
