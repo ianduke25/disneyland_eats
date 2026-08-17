@@ -33,7 +33,7 @@
       <p class="eyebrow eyebrow--panel">Today</p>
       <h2 id="today-date">&mdash;</h2>
 
-      <div class="today-grid">
+      <div class="today-grid" id="today-grid">
         <div class="today-col">
           <h3 class="today-col__title">Reservations today</h3>
           <div id="today-reservations" class="resv-list"></div>
@@ -50,6 +50,23 @@
           <h3 class="today-col__title">Experiences not yet tried</h3>
           <div id="today-picks-adventures" class="pick-list"></div>
           <p class="empty-note" id="today-picks-adventures-empty" hidden>You've tried everything on your top-priority experiences list for this park — nice work!</p>
+        </div>
+      </div>
+
+      <div class="countdown-box" id="countdown-box" hidden>
+        <svg class="countdown-sketch" viewBox="0 0 120 108" aria-hidden="true" focusable="false">
+          <circle cx="38" cy="16" r="13"/>
+          <circle cx="82" cy="16" r="13"/>
+          <path d="M24,60 C24,32 40,16 60,16 C80,16 96,32 96,60 L96,96
+                   C90,88 84,88 78,96 C72,88 66,88 60,96
+                   C54,88 48,88 42,96 C36,88 30,88 24,96 Z"/>
+          <circle class="countdown-sketch__eye" cx="48" cy="55" r="4"/>
+          <circle class="countdown-sketch__eye" cx="72" cy="55" r="4"/>
+          <path class="countdown-sketch__mouth" d="M53,68 Q60,74 67,68" />
+        </svg>
+        <div class="countdown-text">
+          <span class="countdown-number" id="countdown-number">&mdash;</span>
+          <span class="countdown-label" id="countdown-label">Days til Disney</span>
         </div>
       </div>
 
