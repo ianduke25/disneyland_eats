@@ -16,8 +16,8 @@ published as CSV — no backend or build step required.
 
 ### Eats/Adventures sheet
 
-Expected columns: `Park`, `Area`, `Food`, `Location`, `Price`, `Priority`
-(1–3), and `Eats?` (`1` for food items, `0` for adventures/attractions).
+Expected columns: `Park`, `Area`, `Food`, `Location`, `Priority` (1–3),
+and `Eats?` (`1` for food items, `0` for adventures/attractions).
 
 ### Reservations sheet
 

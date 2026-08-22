@@ -7,23 +7,21 @@
   --text-primary: #202124;
   --text-secondary: #5f6368;
   --text-muted: #80868b;
-  --blue: #1a73e8;
-  --blue-hover: #1765cc;
-  --blue-tint: #e8f0fe;
   --accent: #d1477a;
   --accent-tint: #fce8f0;
-  --font-display: "Fredoka", "Roboto", sans-serif;
+  --font-display: "Fredoka", "Inter", sans-serif;
   --green: #137333;
   --green-tint: #e6f4ea;
   --amber: #b06000;
   --amber-tint: #fef7e0;
   --red: #c5221f;
   --red-tint: #fce8e6;
-  --radius-lg: 8px;
-  --radius-md: 8px;
-  --radius-sm: 4px;
-  --shadow-1: 0 1px 2px 0 rgba(60, 64, 67, 0.30), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-  --shadow-2: 0 1px 3px 0 rgba(60, 64, 67, 0.30), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  --shadow-1: 0 2px 6px 0 rgba(43, 30, 20, 0.10), 0 1px 3px 0 rgba(43, 30, 20, 0.08);
+  --shadow-2: 0 4px 14px 0 rgba(43, 30, 20, 0.14), 0 2px 6px 0 rgba(43, 30, 20, 0.10);
   --max-width: 1080px;
 }
 
@@ -52,7 +50,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   color: var(--text-primary);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -75,7 +73,7 @@ body {
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: var(--blue);
+  color: var(--accent);
 }
 
 .site-header h1 {
@@ -102,10 +100,12 @@ main {
 }
 
 .tabs {
-  display: flex;
-  gap: 0.5rem;
+  display: inline-flex;
+  gap: 0.2rem;
   margin: 0 0 1.75rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.3rem;
+  background: var(--surface-variant);
+  border-radius: var(--radius-pill);
 }
 
 .tab {
@@ -114,20 +114,20 @@ main {
   background: transparent;
   color: var(--text-secondary);
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 500;
-  padding: 0.9rem 1rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .tab:hover { color: var(--text-primary); }
 
 .tab.active {
-  color: var(--blue);
-  border-bottom-color: var(--blue);
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-1);
 }
 
 /* ─────────── TODAY PANEL ─────────── */
@@ -257,7 +257,7 @@ main {
   flex-shrink: 0;
   width: 3rem;
   height: 3rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   object-fit: cover;
   background: var(--surface-variant);
 }
@@ -266,8 +266,8 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--blue-tint);
-  color: var(--blue);
+  background: var(--accent-tint);
+  color: var(--accent);
   font-weight: 500;
   font-size: 1.05rem;
 }
@@ -416,7 +416,7 @@ main {
 .segmented {
   display: inline-flex;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   overflow: hidden;
 }
 
@@ -439,8 +439,8 @@ main {
 .seg:hover { background: var(--surface-variant); color: var(--text-primary); }
 
 .seg.active {
-  background: var(--blue-tint);
-  color: var(--blue);
+  background: var(--accent-tint);
+  color: var(--accent);
 }
 
 .chip-group {
@@ -458,8 +458,8 @@ main {
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 500;
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
@@ -467,9 +467,9 @@ main {
 .chip:hover { background: var(--surface-variant); }
 
 .chip.active {
-  background: var(--blue-tint);
-  border-color: var(--blue);
-  color: var(--blue);
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ─────────── RESULTS ─────────── */
@@ -573,7 +573,7 @@ main {
   min-width: 1.5rem;
   height: 1.5rem;
   padding: 0 0.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   font-size: 0.78rem;
   font-weight: 500;
 }
