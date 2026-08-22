@@ -144,7 +144,6 @@
       Area,
       Food,
       Location: str(pickField(raw, "Location"), "Not listed"),
-      Price: num(pickField(raw, "Price"), 0),
       Priority: Math.round(num(pickField(raw, "Priority"), 3)),
       Eats: bool01(pickField(raw, "Eats?"), 1),
       Key: itemKey(Park, Area, Food),
@@ -571,7 +570,6 @@
           ${prioBadge(row.Priority)}
         </div>
         <dl>
-          <dt>Price</dt><dd>$${row.Price.toFixed(2)}</dd>
           <dt>Location</dt><dd>${escapeHtml(row.Location)}</dd>
           <dt>Area</dt><dd>${escapeHtml(row.Area)}</dd>
         </dl>

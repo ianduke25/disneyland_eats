@@ -2,7 +2,7 @@
  * Disney Eats & Adventures — shared "tried it" checklist backend.
  *
  * Bind this script to the Eats/Adventures Google Sheet (the one with
- * Park, Area, Food, Location, Price, Priority, Eats? columns). It reads
+ * Park, Area, Food, Location, Priority, Eats? columns). It reads
  * and writes a "Checked" column so everyone in the group sees the same
  * checkmarks, kept in sync through the sheet itself.
  *
