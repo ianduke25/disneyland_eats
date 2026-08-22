@@ -406,10 +406,39 @@
     `;
   }
 
+  const SPARKLE_CHARS = ["✦", "✧", "★"];
+  const prefersReducedMotion = () =>
+    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function spawnSparkles(anchorEl) {
+    if (prefersReducedMotion()) return;
+    const rect = anchorEl.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+    const count = 6;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+      const distance = 20 + Math.random() * 14;
+      const sparkle = document.createElement("span");
+      sparkle.className = "sparkle";
+      sparkle.textContent = SPARKLE_CHARS[i % SPARKLE_CHARS.length];
+      sparkle.style.left = `${originX}px`;
+      sparkle.style.top = `${originY}px`;
+      sparkle.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+      sparkle.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+      sparkle.style.animationDelay = `${Math.random() * 60}ms`;
+      sparkle.addEventListener("animationend", () => sparkle.remove());
+      document.body.appendChild(sparkle);
+    }
+  }
+
   function bindCheckbox(container) {
     const input = container.querySelector('input[type="checkbox"]');
     if (!input) return;
-    input.addEventListener("change", () => toggleChecked(input.dataset.key));
+    input.addEventListener("change", () => {
+      if (input.checked) spawnSparkles(input);
+      toggleChecked(input.dataset.key);
+    });
   }
 
   function reservationThumbEl(r) {
