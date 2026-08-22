@@ -124,17 +124,15 @@
       const s = (val ?? "").toString().trim();
       return s.length ? s : fallback;
     };
-    // Handles both a plain 0/1 column and a Sheets checkbox column, which
-    // exports as the literal text "TRUE"/"FALSE" rather than a number —
-    // parseFloat("TRUE") is NaN, so a plain numeric parse here silently
-    // defaulted every checkbox row to "Eats", hiding real adventures.
-    const bool01 = (val, fallback) => {
+    // An item is Eats only if this column is explicitly marked truthy/1;
+    // anything else (blank, 0, "false", unrecognized text, ...) is an
+    // Adventure. Handles both a plain 0/1 column and a Sheets checkbox
+    // column, which exports as the literal text "TRUE"/"FALSE" rather
+    // than a number.
+    const bool01 = (val) => {
       const s = (val ?? "").toString().trim().toLowerCase();
-      if (!s) return fallback;
       if (["true", "yes", "y"].includes(s)) return 1;
-      if (["false", "no", "n"].includes(s)) return 0;
-      const n = parseFloat(s);
-      return Number.isFinite(n) ? (n ? 1 : 0) : fallback;
+      return parseFloat(s) === 1 ? 1 : 0;
     };
     const Park = str(pickField(raw, "Park"), "Not listed");
     const Area = str(pickField(raw, "Area"), "Not listed");
@@ -145,7 +143,7 @@
       Food,
       Location: str(pickField(raw, "Location"), "Not listed"),
       Priority: Math.round(num(pickField(raw, "Priority"), 3)),
-      Eats: bool01(pickField(raw, "Eats?"), 1),
+      Eats: bool01(pickField(raw, "Eats?")),
       Key: itemKey(Park, Area, Food),
     };
   }
@@ -408,10 +406,39 @@
     `;
   }
 
+  const SPARKLE_CHARS = ["✦", "✧", "★"];
+  const prefersReducedMotion = () =>
+    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function spawnSparkles(anchorEl) {
+    if (prefersReducedMotion()) return;
+    const rect = anchorEl.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+    const count = 6;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+      const distance = 20 + Math.random() * 14;
+      const sparkle = document.createElement("span");
+      sparkle.className = "sparkle";
+      sparkle.textContent = SPARKLE_CHARS[i % SPARKLE_CHARS.length];
+      sparkle.style.left = `${originX}px`;
+      sparkle.style.top = `${originY}px`;
+      sparkle.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+      sparkle.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+      sparkle.style.animationDelay = `${Math.random() * 60}ms`;
+      sparkle.addEventListener("animationend", () => sparkle.remove());
+      document.body.appendChild(sparkle);
+    }
+  }
+
   function bindCheckbox(container) {
     const input = container.querySelector('input[type="checkbox"]');
     if (!input) return;
-    input.addEventListener("change", () => toggleChecked(input.dataset.key));
+    input.addEventListener("change", () => {
+      if (input.checked) spawnSparkles(input);
+      toggleChecked(input.dataset.key);
+    });
   }
 
   function reservationThumbEl(r) {
