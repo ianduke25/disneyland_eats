@@ -32,12 +32,13 @@
   --bg: #f5efe6;
 }
 
-/* Haunted Mansion Holiday behind the header — a lighter gradient than
-   before so more of the photo reads through, still fading to solid
-   white by the time it reaches the title text. */
+/* Haunted Mansion Holiday behind the header — clear through the top
+   30% so the photo reads at full strength, then a long gradual ramp
+   into the real page background (not a hardcoded white) so there's no
+   seam where the header meets the page below it. */
 .theme-halloween .site-header {
   background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.92) 78%, #fff 100%),
+    linear-gradient(180deg, transparent 0%, transparent 30%, var(--bg) 90%, var(--bg) 100%),
     url("https://cdn.cuisineandtravel.com/wp-content/uploads/2017/10/27044610/disneyland-halloween.jpg");
 }
 
@@ -61,7 +62,7 @@ body {
   position: relative;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 5.5rem 1.5rem 1.75rem;
+  padding: 8.5rem 1.5rem 2rem;
   border-bottom: 1px solid var(--border);
   background-size: cover;
   background-position: center 30%;
