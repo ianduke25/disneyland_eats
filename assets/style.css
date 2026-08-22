@@ -97,6 +97,7 @@ main {
 .park-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
@@ -416,10 +417,15 @@ main {
 
 .segmented {
   display: inline-flex;
+  max-width: 100%;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
+
+.segmented::-webkit-scrollbar { display: none; }
 
 .seg {
   border: none;
