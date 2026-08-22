@@ -124,17 +124,15 @@
       const s = (val ?? "").toString().trim();
       return s.length ? s : fallback;
     };
-    // Handles both a plain 0/1 column and a Sheets checkbox column, which
-    // exports as the literal text "TRUE"/"FALSE" rather than a number —
-    // parseFloat("TRUE") is NaN, so a plain numeric parse here silently
-    // defaulted every checkbox row to "Eats", hiding real adventures.
-    const bool01 = (val, fallback) => {
+    // An item is Eats only if this column is explicitly marked truthy/1;
+    // anything else (blank, 0, "false", unrecognized text, ...) is an
+    // Adventure. Handles both a plain 0/1 column and a Sheets checkbox
+    // column, which exports as the literal text "TRUE"/"FALSE" rather
+    // than a number.
+    const bool01 = (val) => {
       const s = (val ?? "").toString().trim().toLowerCase();
-      if (!s) return fallback;
       if (["true", "yes", "y"].includes(s)) return 1;
-      if (["false", "no", "n"].includes(s)) return 0;
-      const n = parseFloat(s);
-      return Number.isFinite(n) ? (n ? 1 : 0) : fallback;
+      return parseFloat(s) === 1 ? 1 : 0;
     };
     const Park = str(pickField(raw, "Park"), "Not listed");
     const Area = str(pickField(raw, "Area"), "Not listed");
@@ -145,7 +143,7 @@
       Food,
       Location: str(pickField(raw, "Location"), "Not listed"),
       Priority: Math.round(num(pickField(raw, "Priority"), 3)),
-      Eats: bool01(pickField(raw, "Eats?"), 1),
+      Eats: bool01(pickField(raw, "Eats?")),
       Key: itemKey(Park, Area, Food),
     };
   }
