@@ -67,6 +67,7 @@ body {
   background-size: cover;
   background-position: center 30%;
   background-repeat: no-repeat;
+  text-align: center;
 }
 
 .eyebrow {
@@ -81,7 +82,7 @@ body {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-size: clamp(2.2rem, 5vw, 3.1rem);
   line-height: 1.2;
   color: var(--text-primary);
 }
@@ -120,7 +121,7 @@ main {
   padding: 0.55rem 1.25rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .tab:hover { color: var(--text-primary); }
@@ -129,17 +130,16 @@ main {
   background: var(--surface);
   color: var(--accent);
   box-shadow: var(--shadow-1);
+  transform: scale(1.04);
 }
 
 /* ─────────── TODAY PANEL ─────────── */
 .today-panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-top: 3px solid var(--accent);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.75rem 1.75rem;
   margin-bottom: 2rem;
-  transition: border-top-color 0.2s ease;
 }
 
 .eyebrow--panel { margin-bottom: 0.15rem; color: var(--accent); transition: color 0.2s ease; }

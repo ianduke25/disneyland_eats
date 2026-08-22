@@ -16,7 +16,6 @@
 <body>
 
   <header class="site-header">
-    <p class="eyebrow">Disneyland Resort Trip Guide</p>
     <h1>Disneyland Planner</h1>
   </header>
 
@@ -43,13 +42,13 @@
         <div class="today-col">
           <h3 class="today-col__title">Food not yet tried</h3>
           <div id="today-picks-food" class="pick-list"></div>
-          <p class="empty-note" id="today-picks-food-empty" hidden>You've tried everything on your top-priority food list for this park — nice work!</p>
+          <p class="empty-note" id="today-picks-food-empty" hidden>🎉 You've tried everything on your top-priority food list for this park — nice work!</p>
         </div>
 
         <div class="today-col">
           <h3 class="today-col__title">Experiences not yet tried</h3>
           <div id="today-picks-adventures" class="pick-list"></div>
-          <p class="empty-note" id="today-picks-adventures-empty" hidden>You've tried everything on your top-priority experiences list for this park — nice work!</p>
+          <p class="empty-note" id="today-picks-adventures-empty" hidden>🎉 You've tried everything on your top-priority experiences list for this park — nice work!</p>
         </div>
       </div>
 
@@ -74,9 +73,9 @@
     </section>
 
     <nav class="tabs" role="tablist" aria-label="Guide sections">
+      <button class="tab" id="tab-reservations" role="tab" aria-selected="false" data-tab="reservations">Reservations</button>
       <button class="tab active" id="tab-eats" role="tab" aria-selected="true" data-tab="eats">Eats</button>
       <button class="tab" id="tab-adventures" role="tab" aria-selected="false" data-tab="adventures">Adventures</button>
-      <button class="tab" id="tab-reservations" role="tab" aria-selected="false" data-tab="reservations">Reservations</button>
     </nav>
 
     <section class="panel">
