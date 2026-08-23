@@ -91,7 +91,10 @@
 
       <div class="results-header">
         <h2 id="results-title">So you should try&hellip;</h2>
-        <span class="result-count" id="result-count"></span>
+        <div class="results-header__actions">
+          <span class="result-count" id="result-count"></span>
+          <button type="button" class="add-entry-btn" id="add-entry-btn">+ Add</button>
+        </div>
       </div>
 
       <div class="card-grid" id="card-grid"></div>
@@ -104,6 +107,60 @@
   <footer class="site-footer">
     <p>Data synced from our shared Google Sheets &middot; Last updated <span id="last-updated">&mdash;</span></p>
   </footer>
+
+  <dialog class="add-dialog" id="add-entry-dialog">
+    <form id="add-entry-form" novalidate>
+      <h3>Add to the list</h3>
+
+      <div class="field">
+        <span class="field__label">Type</span>
+        <div class="segmented" id="add-type-toggle">
+          <button type="button" class="seg active" data-eats="1">Food</button>
+          <button type="button" class="seg" data-eats="0">Experience</button>
+        </div>
+      </div>
+
+      <label class="field">
+        <span class="field__label">Name</span>
+        <input type="text" id="add-food" maxlength="80" placeholder="e.g. Mickey Waffles" required />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Park</span>
+        <select id="add-park">
+          <option value="Disneyland">Disneyland</option>
+          <option value="California Adventure">California Adventure</option>
+          <option value="Hotels">Hotels</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Area</span>
+        <input type="text" id="add-area" maxlength="60" placeholder="e.g. Fantasyland" />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Location</span>
+        <input type="text" id="add-location" maxlength="60" placeholder="e.g. Village Haus" />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Priority</span>
+        <select id="add-priority">
+          <option value="1">1 — Top pick</option>
+          <option value="2" selected>2 — Good</option>
+          <option value="3">3 — If time allows</option>
+        </select>
+      </label>
+
+      <p class="add-dialog__error" id="add-entry-error" hidden></p>
+
+      <div class="add-dialog__actions">
+        <button type="button" class="add-dialog__cancel" id="add-entry-cancel">Cancel</button>
+        <button type="submit" class="add-dialog__submit" id="add-entry-submit">Add to list</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="assets/app.js"></script>
