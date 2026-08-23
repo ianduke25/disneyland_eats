@@ -76,6 +76,18 @@
     countdownNumber: document.getElementById("countdown-number"),
     countdownLabel: document.getElementById("countdown-label"),
     syncNote: document.getElementById("sync-note"),
+    addEntryBtn: document.getElementById("add-entry-btn"),
+    addEntryDialog: document.getElementById("add-entry-dialog"),
+    addEntryForm: document.getElementById("add-entry-form"),
+    addTypeToggle: document.getElementById("add-type-toggle"),
+    addFood: document.getElementById("add-food"),
+    addPark: document.getElementById("add-park"),
+    addArea: document.getElementById("add-area"),
+    addLocation: document.getElementById("add-location"),
+    addPriority: document.getElementById("add-priority"),
+    addEntryError: document.getElementById("add-entry-error"),
+    addEntryCancel: document.getElementById("add-entry-cancel"),
+    addEntrySubmit: document.getElementById("add-entry-submit"),
   };
 
   function daysUntilTrip() {
@@ -374,6 +386,98 @@
     }
   }
 
+  function openAddDialog() {
+    els.addEntryForm.reset();
+    els.addEntryError.hidden = true;
+    els.addPark.value = state.park;
+    els.addPriority.value = "2";
+
+    const defaultEats = state.tab === "adventures" ? "0" : "1";
+    els.addTypeToggle.querySelectorAll(".seg").forEach((b) => {
+      b.classList.toggle("active", b.dataset.eats === defaultEats);
+    });
+
+    els.addEntryDialog.showModal();
+    els.addFood.focus();
+  }
+
+  async function submitAddEntry(event) {
+    event.preventDefault();
+    els.addEntryError.hidden = true;
+
+    const food = els.addFood.value.trim();
+    if (!food) {
+      els.addEntryError.textContent = "Give it a name first.";
+      els.addEntryError.hidden = false;
+      els.addFood.focus();
+      return;
+    }
+
+    if (!CHECKLIST_API_URL) {
+      els.addEntryError.textContent = "Adding entries needs the shared checklist backend set up first — see README.";
+      els.addEntryError.hidden = false;
+      return;
+    }
+
+    const activeType = els.addTypeToggle.querySelector(".seg.active");
+    const eatsValue = activeType && activeType.dataset.eats === "0" ? 0 : 1;
+    const park = els.addPark.value;
+    const area = els.addArea.value.trim() || "Not listed";
+    const location = els.addLocation.value.trim() || "Not listed";
+    const priority = Number(els.addPriority.value) || 2;
+
+    els.addEntrySubmit.disabled = true;
+    els.addEntrySubmit.textContent = "Adding…";
+
+    try {
+      const params = new URLSearchParams({
+        action: "add",
+        park,
+        area,
+        food,
+        location,
+        priority: String(priority),
+        eats: String(eatsValue),
+      });
+      const res = await fetch(`${CHECKLIST_API_URL}?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "Couldn't add that item.");
+
+      state.eats.push({
+        Park: park,
+        Area: area,
+        Food: food,
+        Location: location,
+        Priority: priority,
+        Eats: eatsValue,
+        Key: itemKey(park, area, food),
+      });
+
+      // Jump to wherever the new item actually lives so it's immediately visible.
+      state.tab = eatsValue === 1 ? "eats" : "adventures";
+      els.tabButtons.forEach((b) => {
+        const active = b.dataset.tab === state.tab;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      state.selectedAreas[state.tab].clear();
+      state.park = park;
+      els.parkToggle.querySelectorAll(".seg").forEach((b) => b.classList.toggle("active", b.dataset.park === park));
+
+      spawnSparkles(els.addEntryBtn);
+      els.addEntryDialog.close();
+      renderAll();
+    } catch (err) {
+      console.warn("Couldn't add entry:", err);
+      els.addEntryError.textContent = "Couldn't save that — check your connection and try again.";
+      els.addEntryError.hidden = false;
+    } finally {
+      els.addEntrySubmit.disabled = false;
+      els.addEntrySubmit.textContent = "Add to list";
+    }
+  }
+
   function startChecklistPolling() {
     if (!CHECKLIST_API_URL) return;
     setInterval(async () => {
@@ -639,6 +743,7 @@
     els.filterBar.hidden = isReservations;
     els.cardGrid.hidden = isReservations;
     els.reservationsList.hidden = !isReservations;
+    els.addEntryBtn.hidden = isReservations;
 
     let count;
     if (isReservations) {
@@ -688,6 +793,18 @@
         els.parkToggle.querySelectorAll(".seg").forEach((b) => b.classList.toggle("active", b === btn));
         state.park = btn.dataset.park;
         renderAll();
+      });
+    });
+
+    els.addEntryBtn.addEventListener("click", openAddDialog);
+    els.addEntryCancel.addEventListener("click", () => els.addEntryDialog.close());
+    els.addEntryForm.addEventListener("submit", submitAddEntry);
+    els.addEntryDialog.addEventListener("click", (event) => {
+      if (event.target === els.addEntryDialog) els.addEntryDialog.close();
+    });
+    els.addTypeToggle.querySelectorAll(".seg").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        els.addTypeToggle.querySelectorAll(".seg").forEach((b) => b.classList.toggle("active", b === btn));
       });
     });
   }

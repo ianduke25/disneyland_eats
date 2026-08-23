@@ -30,13 +30,15 @@ Both sheets must be shared as **Anyone with the link can view** — the site
 fetches them as anonymous CSV exports, the same way you'd share a read-only
 link.
 
-## Syncing checkmarks across the group
+## Syncing checkmarks across the group (and adding new entries)
 
 Checking off an item as "tried" is meant to be shared — if one person
-checks it off, everyone should see it checked off. Since this is a static
-site with no server of its own, that shared state is kept in the
-Eats/Adventures Google Sheet itself, via a small Google Apps Script web
-app:
+checks it off, everyone should see it checked off. The same backend also
+powers the **+ Add** button on the Eats/Adventures tabs, which lets anyone
+add a new food or experience from the app itself instead of editing the
+sheet directly. Since this is a static site with no server of its own,
+both features are backed by the Eats/Adventures Google Sheet itself, via a
+small Google Apps Script web app:
 
 1. Open the Eats/Adventures Google Sheet.
 2. **Extensions → Apps Script**.
@@ -47,14 +49,32 @@ app:
    - Who has access: **Anyone**
 5. Copy the deployment URL (ends in `/exec`) and paste it into
    `CHECKLIST_API_URL` near the top of `assets/app.js`.
-6. Commit and push — the site will now read/write checkmarks through that
-   script, and a `Checked` column will appear in the sheet automatically.
+6. Commit and push — the site will now read/write checkmarks and new
+   entries through that script, and a `Checked` column will appear in the
+   sheet automatically.
 
 Until this is set up, checkmarks still work but are saved only to the
-browser you're using (the site will show a small note saying so).
+browser you're using (the site will show a small note saying so), and the
+**+ Add** button will show an error when used.
 
 Other devices pick up new checkmarks within 30 seconds automatically (no
 refresh needed) — see `CHECKLIST_POLL_MS` in `assets/app.js` to adjust.
+
+### Updating the script later
+
+Whenever `google-apps-script/checklist-api.gs` changes (like it did to add
+the "+ Add" button's backend), you need to push that new code to your
+*existing* deployment rather than creating a new one — otherwise
+`CHECKLIST_API_URL` would need to change too:
+
+1. Open the Apps Script project, replace the code with the latest version
+   of `checklist-api.gs`, and save.
+2. **Deploy → Manage deployments**.
+3. Click the pencil (edit) icon on your existing deployment.
+4. Under **Version**, choose **New version**, then **Deploy**.
+
+This keeps the same `/exec` URL, so nothing in `assets/app.js` needs to
+change.
 
 ## Running locally
 

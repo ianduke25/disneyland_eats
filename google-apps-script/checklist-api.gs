@@ -29,6 +29,9 @@ function doGet(e) {
   if (action === 'set') {
     return jsonResponse(setChecked(e.parameter.key, e.parameter.checked === 'true'));
   }
+  if (action === 'add') {
+    return jsonResponse(addRow(e.parameter));
+  }
   return jsonResponse(listChecked());
 }
 
@@ -108,6 +111,49 @@ function setChecked(key, checked) {
     }
   }
   return { ok: false, error: 'Key not found' };
+}
+
+// Appends a new row from the "Add to the list" form in the app. Takes a
+// script lock so two people adding an entry at the same moment can't both
+// read the same "last row" and overwrite each other.
+function addRow(fields) {
+  var food = cleanStr_(fields.food, '');
+  if (!food) return { ok: false, error: 'Missing name' };
+
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (err) {
+    return { ok: false, error: 'Sheet is busy, try again' };
+  }
+
+  try {
+    var sheet = getSheet_();
+    var headerMap = getHeaderMap_(sheet);
+    ensureCheckedColumn_(sheet, headerMap);
+
+    var lastCol = sheet.getLastColumn();
+    var rowValues = new Array(lastCol).fill('');
+
+    var setField = function (name, value) {
+      var col = headerMap[name];
+      if (col) rowValues[col - 1] = value;
+    };
+
+    setField('Park', cleanStr_(fields.park, 'Not listed'));
+    setField('Area', cleanStr_(fields.area, 'Not listed'));
+    setField('Food', food);
+    setField('Location', cleanStr_(fields.location, 'Not listed'));
+    setField('Priority', fields.priority || '3');
+    setField('Eats?', fields.eats === '0' ? '0' : '1');
+
+    var newRow = sheet.getLastRow() + 1;
+    sheet.getRange(newRow, 1, 1, lastCol).setValues([rowValues]);
+
+    return { ok: true, key: buildKey_(fields.park, fields.area, food) };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function jsonResponse(obj) {
