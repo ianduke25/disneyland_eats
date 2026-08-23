@@ -11,7 +11,7 @@
   // app (see README) and paste the deployment URL here to sync "tried it"
   // checkmarks across the whole group. Leave blank to keep checkmarks local
   // to this browser only.
-  const CHECKLIST_API_URL = "https://script.google.com/macros/s/AKfycbx5oVkfeeIaj9WCJdApev8QYfQ32pLBE_eWG_a5N32NCKb5Myrps0B4Svj3MP7_CQSK/exec";
+  const CHECKLIST_API_URL = "https://script.google.com/macros/s/AKfycbzWPtyK07yaTC3bCXdwR4K1CpAzAgw1VvgOOVdn1iPlK28o5sqkUL8xjfUkXqb6pFAF/exec";
 
   const CONFLICT_WINDOW_MIN = 90;
   const CHECKLIST_POLL_MS = 30000;
