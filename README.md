@@ -22,7 +22,8 @@ and `Eats?` (`1` for food items, `0` for adventures/attractions).
 ### Reservations sheet
 
 Expected columns: `reservation`, `area`, `date`, `time` (military time,
-e.g. `1830` or `18:30`). Reservations on the same day within 90 minutes of
+e.g. `1830` or `18:30`), and `User` (who made the reservation — shown next
+to the area in the app). Reservations on the same day within 90 minutes of
 each other are flagged as conflicting (adjust `CONFLICT_WINDOW_MIN` in
 `assets/app.js` to change the window).
 
@@ -30,15 +31,26 @@ Both sheets must be shared as **Anyone with the link can view** — the site
 fetches them as anonymous CSV exports, the same way you'd share a read-only
 link.
 
-## Syncing checkmarks across the group (and adding new entries)
+## Syncing checkmarks, adding, and editing entries
 
 Checking off an item as "tried" is meant to be shared — if one person
 checks it off, everyone should see it checked off. The same backend also
-powers the **+ Add** button on the Eats/Adventures tabs, which lets anyone
-add a new food or experience from the app itself instead of editing the
-sheet directly. Since this is a static site with no server of its own,
-both features are backed by the Eats/Adventures Google Sheet itself, via a
-small Google Apps Script web app:
+powers:
+
+- The **+ Add** button on the Eats/Adventures tabs, which lets anyone add
+  a new food or experience from the app itself instead of editing the
+  sheet directly.
+- The pencil **edit button** on each food/adventure card, which opens the
+  same dialog pre-filled so anyone can fix a typo or update details
+  in place.
+- The pencil **edit button** on each reservation row, which opens a
+  similar dialog for the reservation's name, area, date, time, and who
+  booked it.
+
+Since this is a static site with no server of its own, all of this is
+backed by a single small Google Apps Script web app, bound to the
+Eats/Adventures Google Sheet but also given the Reservations sheet's ID so
+it can update either one:
 
 1. Open the Eats/Adventures Google Sheet.
 2. **Extensions → Apps Script**.
@@ -49,13 +61,22 @@ small Google Apps Script web app:
    - Who has access: **Anyone**
 5. Copy the deployment URL (ends in `/exec`) and paste it into
    `CHECKLIST_API_URL` near the top of `assets/app.js`.
-6. Commit and push — the site will now read/write checkmarks and new
-   entries through that script, and a `Checked` column will appear in the
-   sheet automatically.
+6. Commit and push — the site will now read/write checkmarks, new
+   entries, and edits through that script, and a `Checked` column will
+   appear in the Eats/Adventures sheet automatically.
+
+Because editing reservations means this script writes to a spreadsheet
+it isn't bound to, whichever Google account you deploy it under (the
+"Execute as: Me" account) needs **edit access to the Reservations sheet
+as well**, not just the Eats/Adventures one — otherwise reservation edits
+will fail even though checkmarks and Eats/Adventures edits work fine. If
+your Reservations sheet is ever copied to a new file, update
+`RESV_SHEET_ID` in `checklist-api.gs` (it must match `RESV_SHEET_ID` in
+`assets/app.js`) and redeploy (see below).
 
 Until this is set up, checkmarks still work but are saved only to the
 browser you're using (the site will show a small note saying so), and the
-**+ Add** button will show an error when used.
+**+ Add** button and both edit buttons will show an error when used.
 
 Other devices pick up new checkmarks within 30 seconds automatically (no
 refresh needed) — see `CHECKLIST_POLL_MS` in `assets/app.js` to adjust.

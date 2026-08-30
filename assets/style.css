@@ -324,6 +324,24 @@ main {
   min-width: 0;
 }
 
+/* ─────────── EDIT BUTTON ─────────── */
+.edit-btn {
+  flex-shrink: 0;
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0.3rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.edit-btn:hover { opacity: 1; background: var(--surface-variant); }
+.edit-btn:active { transform: scale(0.9); }
+
 .resv-row__time {
   flex-shrink: 0;
   min-width: 4.5rem;
@@ -722,6 +740,13 @@ main {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.food-card__header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .food-card h3 {
