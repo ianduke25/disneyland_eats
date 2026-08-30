@@ -32,6 +32,9 @@ function doGet(e) {
   if (action === 'add') {
     return jsonResponse(addRow(e.parameter));
   }
+  if (action === 'update') {
+    return jsonResponse(updateRow(e.parameter));
+  }
   return jsonResponse(listChecked());
 }
 
@@ -151,6 +154,58 @@ function addRow(fields) {
     sheet.getRange(newRow, 1, 1, lastCol).setValues([rowValues]);
 
     return { ok: true, key: buildKey_(fields.park, fields.area, food) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Updates an existing Eats/Adventures row in place, located by the
+// Park/Area/Food it had before the edit (fields.originalKey) — mirrors how
+// setChecked locates a row, so renaming an item updates it rather than
+// creating a duplicate.
+function updateRow(fields) {
+  var food = cleanStr_(fields.food, '');
+  if (!food) return { ok: false, error: 'Missing name' };
+  if (!fields.originalKey) return { ok: false, error: 'Missing original item' };
+
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (err) {
+    return { ok: false, error: 'Sheet is busy, try again' };
+  }
+
+  try {
+    var sheet = getSheet_();
+    var headerMap = getHeaderMap_(sheet);
+    ensureCheckedColumn_(sheet, headerMap);
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return { ok: false, error: 'No data rows' };
+
+    var values = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+    for (var i = 0; i < values.length; i++) {
+      var rowKey = buildKey_(
+        values[i][headerMap['Park'] - 1],
+        values[i][headerMap['Area'] - 1],
+        values[i][headerMap['Food'] - 1]
+      );
+      if (rowKey !== fields.originalKey) continue;
+
+      var rowNum = i + 2;
+      var setCell = function (name, value) {
+        var col = headerMap[name];
+        if (col) sheet.getRange(rowNum, col).setValue(value);
+      };
+      setCell('Park', cleanStr_(fields.park, 'Not listed'));
+      setCell('Area', cleanStr_(fields.area, 'Not listed'));
+      setCell('Food', food);
+      setCell('Location', cleanStr_(fields.location, 'Not listed'));
+      setCell('Priority', fields.priority || '3');
+      setCell('Eats?', fields.eats === '0' ? '0' : '1');
+
+      return { ok: true, key: buildKey_(fields.park, fields.area, food) };
+    }
+    return { ok: false, error: "Couldn't find that item anymore — it may have changed. Refresh and try again." };
   } finally {
     lock.releaseLock();
   }

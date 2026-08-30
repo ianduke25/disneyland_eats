@@ -79,6 +79,7 @@
     addEntryBtn: document.getElementById("add-entry-btn"),
     addEntryDialog: document.getElementById("add-entry-dialog"),
     addEntryForm: document.getElementById("add-entry-form"),
+    addEntryTitle: document.getElementById("add-entry-title"),
     addTypeToggle: document.getElementById("add-type-toggle"),
     addFood: document.getElementById("add-food"),
     addPark: document.getElementById("add-park"),
@@ -89,6 +90,11 @@
     addEntryCancel: document.getElementById("add-entry-cancel"),
     addEntrySubmit: document.getElementById("add-entry-submit"),
   };
+
+  // Set while the add-entry dialog is being used to edit an existing
+  // Eats/Adventures row (holds that row's Key before the edit, so the
+  // backend can find it even if the edit renames it); null while adding.
+  let editingEatsKey = null;
 
   function daysUntilTrip() {
     const today = new Date();
@@ -265,6 +271,7 @@
     return {
       Reservation: reservation,
       Area: str(pickField(raw, "area"), "Not listed"),
+      User: str(pickField(raw, "user"), ""),
       DateObj: dateObj,
       DateKey: dateKey(dateObj),
       DateLabel: dateObj
@@ -278,6 +285,7 @@
   }
 
   function flagConflicts(reservations) {
+    reservations.forEach((r) => { r.Conflict = false; });
     const byDate = new Map();
     reservations.forEach((r) => {
       if (!byDate.has(r.DateKey)) byDate.set(r.DateKey, []);
@@ -386,22 +394,33 @@
     }
   }
 
-  function openAddDialog() {
+  // `row` is the Eats/Adventures item being edited, or omit/null to add a
+  // new one — both cases share the same dialog and form.
+  function openEntryDialog(row) {
+    editingEatsKey = row ? row.Key : null;
     els.addEntryForm.reset();
     els.addEntryError.hidden = true;
-    els.addPark.value = state.park;
-    els.addPriority.value = "2";
 
-    const defaultEats = state.tab === "adventures" ? "0" : "1";
+    const isEdit = !!row;
+    els.addEntryTitle.textContent = isEdit ? "Edit item" : "Add to the list";
+    els.addEntrySubmit.textContent = isEdit ? "Save changes" : "Add to list";
+
+    els.addFood.value = isEdit ? row.Food : "";
+    els.addPark.value = isEdit ? row.Park : state.park;
+    els.addArea.value = isEdit ? row.Area : "";
+    els.addLocation.value = isEdit ? row.Location : "";
+    els.addPriority.value = isEdit ? String(row.Priority) : "2";
+
+    const defaultEats = isEdit ? row.Eats : (state.tab === "adventures" ? 0 : 1);
     els.addTypeToggle.querySelectorAll(".seg").forEach((b) => {
-      b.classList.toggle("active", b.dataset.eats === defaultEats);
+      b.classList.toggle("active", Number(b.dataset.eats) === defaultEats);
     });
 
     els.addEntryDialog.showModal();
     els.addFood.focus();
   }
 
-  async function submitAddEntry(event) {
+  async function submitEntryForm(event) {
     event.preventDefault();
     els.addEntryError.hidden = true;
 
@@ -414,11 +433,12 @@
     }
 
     if (!CHECKLIST_API_URL) {
-      els.addEntryError.textContent = "Adding entries needs the shared checklist backend set up first — see README.";
+      els.addEntryError.textContent = "Adding or editing entries needs the shared checklist backend set up first — see README.";
       els.addEntryError.hidden = false;
       return;
     }
 
+    const isEdit = !!editingEatsKey;
     const activeType = els.addTypeToggle.querySelector(".seg.active");
     const eatsValue = activeType && activeType.dataset.eats === "0" ? 0 : 1;
     const park = els.addPark.value;
@@ -427,11 +447,11 @@
     const priority = Number(els.addPriority.value) || 2;
 
     els.addEntrySubmit.disabled = true;
-    els.addEntrySubmit.textContent = "Adding…";
+    els.addEntrySubmit.textContent = isEdit ? "Saving…" : "Adding…";
 
     try {
       const params = new URLSearchParams({
-        action: "add",
+        action: isEdit ? "update" : "add",
         park,
         area,
         food,
@@ -439,22 +459,31 @@
         priority: String(priority),
         eats: String(eatsValue),
       });
+      if (isEdit) params.set("originalKey", editingEatsKey);
+
       const res = await fetch(`${CHECKLIST_API_URL}?${params.toString()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error || "Couldn't add that item.");
+      if (!data.ok) throw new Error(data.error || "Couldn't save that item.");
 
-      state.eats.push({
-        Park: park,
-        Area: area,
-        Food: food,
-        Location: location,
-        Priority: priority,
-        Eats: eatsValue,
-        Key: itemKey(park, area, food),
-      });
+      const newKey = itemKey(park, area, food);
+      const updatedRow = { Park: park, Area: area, Food: food, Location: location, Priority: priority, Eats: eatsValue, Key: newKey };
 
-      // Jump to wherever the new item actually lives so it's immediately visible.
+      if (isEdit) {
+        const idx = state.eats.findIndex((r) => r.Key === editingEatsKey);
+        if (idx !== -1) state.eats[idx] = updatedRow;
+        // The "tried it" checkmark is keyed by Park/Area/Food, so if the
+        // edit changed any of those, carry the checkmark over to the new key.
+        if (newKey !== editingEatsKey && state.checked.has(editingEatsKey)) {
+          state.checked.set(newKey, state.checked.get(editingEatsKey));
+          state.checked.delete(editingEatsKey);
+          saveLocalChecked();
+        }
+      } else {
+        state.eats.push(updatedRow);
+      }
+
+      // Jump to wherever the item now lives so it's immediately visible.
       state.tab = eatsValue === 1 ? "eats" : "adventures";
       els.tabButtons.forEach((b) => {
         const active = b.dataset.tab === state.tab;
@@ -469,12 +498,12 @@
       els.addEntryDialog.close();
       renderAll();
     } catch (err) {
-      console.warn("Couldn't add entry:", err);
+      console.warn("Couldn't save entry:", err);
       els.addEntryError.textContent = "Couldn't save that — check your connection and try again.";
       els.addEntryError.hidden = false;
     } finally {
       els.addEntrySubmit.disabled = false;
-      els.addEntrySubmit.textContent = "Add to list";
+      els.addEntrySubmit.textContent = isEdit ? "Save changes" : "Add to list";
     }
   }
 
@@ -580,7 +609,7 @@
       <span class="resv-row__time">${escapeHtml(r.TimeLabel)}</span>
       <span class="resv-row__body">
         <span class="resv-row__name">${escapeHtml(r.Reservation)}</span>
-        <span class="resv-row__area">${escapeHtml(r.Area)}</span>
+        <span class="resv-row__area">${escapeHtml(r.Area)}${r.User ? ` &middot; Booked by ${escapeHtml(r.User)}` : ""}</span>
       </span>
       ${r.Conflict ? '<span class="conflict-badge">Conflict</span>' : ""}
     `;
@@ -698,7 +727,10 @@
       card.innerHTML = `
         <div class="food-card__header">
           <h3>${escapeHtml(row.Food)}</h3>
-          ${prioBadge(row.Priority)}
+          <div class="food-card__header-actions">
+            ${prioBadge(row.Priority)}
+            <button type="button" class="edit-btn" aria-label="Edit ${escapeHtml(row.Food)}">✏️</button>
+          </div>
         </div>
         <dl>
           <dt>Location</dt><dd>${escapeHtml(row.Location)}</dd>
@@ -707,6 +739,7 @@
         ${checkboxHtml(row.Key, checked)}
       `;
       bindCheckbox(card);
+      card.querySelector(".edit-btn").addEventListener("click", () => openEntryDialog(row));
       els.cardGrid.appendChild(card);
     });
 
@@ -796,9 +829,9 @@
       });
     });
 
-    els.addEntryBtn.addEventListener("click", openAddDialog);
+    els.addEntryBtn.addEventListener("click", () => openEntryDialog(null));
     els.addEntryCancel.addEventListener("click", () => els.addEntryDialog.close());
-    els.addEntryForm.addEventListener("submit", submitAddEntry);
+    els.addEntryForm.addEventListener("submit", submitEntryForm);
     els.addEntryDialog.addEventListener("click", (event) => {
       if (event.target === els.addEntryDialog) els.addEntryDialog.close();
     });
