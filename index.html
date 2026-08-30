@@ -162,44 +162,6 @@
     </form>
   </dialog>
 
-  <dialog class="add-dialog" id="edit-resv-dialog">
-    <form id="edit-resv-form" novalidate>
-      <h3>Edit reservation</h3>
-
-      <label class="field">
-        <span class="field__label">Reservation</span>
-        <input type="text" id="edit-resv-name" maxlength="80" placeholder="e.g. Blue Bayou" required />
-      </label>
-
-      <label class="field">
-        <span class="field__label">Area</span>
-        <input type="text" id="edit-resv-area" maxlength="60" placeholder="e.g. New Orleans Square" />
-      </label>
-
-      <label class="field">
-        <span class="field__label">Date</span>
-        <input type="date" id="edit-resv-date" />
-      </label>
-
-      <label class="field">
-        <span class="field__label">Time</span>
-        <input type="text" id="edit-resv-time" maxlength="20" placeholder="e.g. 6:30 PM or 1830" />
-      </label>
-
-      <label class="field">
-        <span class="field__label">Booked by</span>
-        <input type="text" id="edit-resv-user" maxlength="60" placeholder="e.g. Ian" />
-      </label>
-
-      <p class="add-dialog__error" id="edit-resv-error" hidden></p>
-
-      <div class="add-dialog__actions">
-        <button type="button" class="add-dialog__cancel" id="edit-resv-cancel">Cancel</button>
-        <button type="submit" class="add-dialog__submit" id="edit-resv-submit">Save changes</button>
-      </div>
-    </form>
-  </dialog>
-
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="assets/app.js"></script>
 </body>

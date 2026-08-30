@@ -89,25 +89,12 @@
     addEntryError: document.getElementById("add-entry-error"),
     addEntryCancel: document.getElementById("add-entry-cancel"),
     addEntrySubmit: document.getElementById("add-entry-submit"),
-    editResvDialog: document.getElementById("edit-resv-dialog"),
-    editResvForm: document.getElementById("edit-resv-form"),
-    editResvName: document.getElementById("edit-resv-name"),
-    editResvArea: document.getElementById("edit-resv-area"),
-    editResvDate: document.getElementById("edit-resv-date"),
-    editResvTime: document.getElementById("edit-resv-time"),
-    editResvUser: document.getElementById("edit-resv-user"),
-    editResvError: document.getElementById("edit-resv-error"),
-    editResvCancel: document.getElementById("edit-resv-cancel"),
-    editResvSubmit: document.getElementById("edit-resv-submit"),
   };
 
   // Set while the add-entry dialog is being used to edit an existing
   // Eats/Adventures row (holds that row's Key before the edit, so the
   // backend can find it even if the edit renames it); null while adding.
   let editingEatsKey = null;
-  // Set while the reservation-edit dialog is open — holds the exact
-  // reservation object being edited, from the currently-loaded state.
-  let editingReservation = null;
 
   function daysUntilTrip() {
     const today = new Date();
@@ -520,97 +507,6 @@
     }
   }
 
-  function openEditResvDialog(r) {
-    editingReservation = r;
-    els.editResvForm.reset();
-    els.editResvError.hidden = true;
-    els.editResvName.value = r.Reservation;
-    els.editResvArea.value = r.Area === "Not listed" ? "" : r.Area;
-    els.editResvDate.value = r.DateObj ? dateKey(r.DateObj) : "";
-    els.editResvTime.value = r.Minutes !== null ? formatMinutes(r.Minutes) : "";
-    els.editResvUser.value = r.User || "";
-    els.editResvDialog.showModal();
-    els.editResvName.focus();
-  }
-
-  async function submitEditResv(event) {
-    event.preventDefault();
-    els.editResvError.hidden = true;
-
-    const name = els.editResvName.value.trim();
-    if (!name) {
-      els.editResvError.textContent = "Give it a name first.";
-      els.editResvError.hidden = false;
-      els.editResvName.focus();
-      return;
-    }
-
-    if (!CHECKLIST_API_URL) {
-      els.editResvError.textContent = "Editing reservations needs the shared checklist backend set up first — see README.";
-      els.editResvError.hidden = false;
-      return;
-    }
-
-    const orig = editingReservation;
-    const area = els.editResvArea.value.trim() || "Not listed";
-    const dateValue = els.editResvDate.value; // "YYYY-MM-DD" or ""
-    const timeValue = els.editResvTime.value.trim();
-    const user = els.editResvUser.value.trim();
-
-    els.editResvSubmit.disabled = true;
-    els.editResvSubmit.textContent = "Saving…";
-
-    try {
-      const params = new URLSearchParams({
-        action: "resv_update",
-        reservation: name,
-        area,
-        date: dateValue,
-        time: timeValue,
-        user,
-        originalReservation: orig.Reservation,
-        originalArea: orig.Area,
-        originalDateKey: orig.DateKey === "unknown" ? "" : orig.DateKey,
-        originalMinutes: orig.Minutes === null ? "" : String(orig.Minutes),
-      });
-      const res = await fetch(`${CHECKLIST_API_URL}?${params.toString()}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error || "Couldn't save that reservation.");
-
-      const idx = state.reservations.indexOf(orig);
-      if (idx !== -1) {
-        const dateObj = dateValue ? parseDateCell(dateValue) : null;
-        const minutes = parseMilitaryTime(timeValue);
-        state.reservations[idx] = {
-          ...orig,
-          Reservation: name,
-          Area: area,
-          User: user,
-          DateObj: dateObj,
-          DateKey: dateKey(dateObj),
-          DateLabel: dateObj
-            ? dateObj.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
-            : "Date TBD",
-          Minutes: minutes,
-          TimeLabel: formatMinutes(minutes),
-          ImageUrl: findReservationImage(name),
-        };
-        flagConflicts(state.reservations);
-      }
-
-      els.editResvDialog.close();
-      renderAll();
-    } catch (err) {
-      console.warn("Couldn't save reservation:", err);
-      els.editResvError.textContent = "Couldn't save that — check your connection and try again.";
-      els.editResvError.hidden = false;
-    } finally {
-      els.editResvSubmit.disabled = false;
-      els.editResvSubmit.textContent = "Save changes";
-    }
-  }
-
   function startChecklistPolling() {
     if (!CHECKLIST_API_URL) return;
     setInterval(async () => {
@@ -718,15 +614,6 @@
       ${r.Conflict ? '<span class="conflict-badge">Conflict</span>' : ""}
     `;
     row.appendChild(main);
-
-    const editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.className = "edit-btn";
-    editBtn.setAttribute("aria-label", `Edit ${r.Reservation}`);
-    editBtn.textContent = "✏️";
-    editBtn.addEventListener("click", () => openEditResvDialog(r));
-    row.appendChild(editBtn);
-
     return row;
   }
 
@@ -952,12 +839,6 @@
       btn.addEventListener("click", () => {
         els.addTypeToggle.querySelectorAll(".seg").forEach((b) => b.classList.toggle("active", b === btn));
       });
-    });
-
-    els.editResvCancel.addEventListener("click", () => els.editResvDialog.close());
-    els.editResvForm.addEventListener("submit", submitEditResv);
-    els.editResvDialog.addEventListener("click", (event) => {
-      if (event.target === els.editResvDialog) els.editResvDialog.close();
     });
   }
 
