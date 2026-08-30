@@ -36,6 +36,9 @@
     "carnation cafe": "https://i0.wp.com/live.staticflickr.com/65535/50012186097_8f3c485c40_b.jpg?resize=1024%2C683&ssl=1",
     "blue bayou": "https://disneylanddaily.com/wp-content/uploads/2017/08/IMG_2450-2.jpg",
     "fantasmic dining package": "https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1600/900/75/dam/wdpro-assets/dlr/parks-and-tickets/entertainment/disneyland/fantasmic/fantasmic-02.jpg?1785252442313",
+    "world of color": "https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/1600/900/75/dam/disneyland/entertainment/disney-california-adventure/world-of-color-season-of-light/holidays-8-hr-duratex-16x9.jpg?1756992222059",
+    "trader sam's": "https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/630/354/75/dam/wdpro-assets/dlr/things-to-do/dining/resort-dining/disneyland-hotel/trader-sams/trader-sams-00.jpg?1779485225750",
+    "trader sams": "https://cdn1.parksmedia.wdprapps.disney.com/resize/mwImage/1/630/354/75/dam/wdpro-assets/dlr/things-to-do/dining/resort-dining/disneyland-hotel/trader-sams/trader-sams-00.jpg?1779485225750",
   };
 
   const state = {
