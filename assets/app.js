@@ -16,6 +16,9 @@
   const CONFLICT_WINDOW_MIN = 90;
   const CHECKLIST_POLL_MS = 30000;
   const CHECKED_STORAGE_KEY = "disneyEats.checked.v1";
+  // Keeps the loading screen up at least this long even on a fast
+  // connection, so its word-by-word animation is never cut off mid-reveal.
+  const MIN_LOADING_SCREEN_MS = 2200;
 
   const TRIP_START = new Date(2026, 8, 4); // September 4, 2026
 
@@ -81,6 +84,7 @@
     countdownNumber: document.getElementById("countdown-number"),
     countdownLabel: document.getElementById("countdown-label"),
     syncNote: document.getElementById("sync-note"),
+    loadingScreen: document.getElementById("loading-screen"),
     addEntryBtn: document.getElementById("add-entry-btn"),
     addEntryDialog: document.getElementById("add-entry-dialog"),
     addEntryForm: document.getElementById("add-entry-form"),
@@ -892,8 +896,19 @@
     if (favicon && link) link.href = favicon;
   }
 
+  function hideLoadingScreen() {
+    if (!els.loadingScreen) return;
+    if (prefersReducedMotion()) {
+      els.loadingScreen.hidden = true;
+      return;
+    }
+    els.loadingScreen.classList.add("is-hidden");
+    els.loadingScreen.addEventListener("transitionend", () => { els.loadingScreen.hidden = true; }, { once: true });
+  }
+
   // ─────────────────────────  INIT  ─────────────────────────
   async function init() {
+    const loadStart = Date.now();
     applySeasonalTheme();
     bindEvents();
     loadLocalChecked();
@@ -905,6 +920,10 @@
     } catch (err) {
       console.error(err);
       setStatus(`Couldn't load trip data. ${err.message || ""}`.trim(), true);
+    } finally {
+      const elapsed = Date.now() - loadStart;
+      const remaining = prefersReducedMotion() ? 0 : Math.max(0, MIN_LOADING_SCREEN_MS - elapsed);
+      setTimeout(hideLoadingScreen, remaining);
     }
   }
 
