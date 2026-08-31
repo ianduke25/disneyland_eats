@@ -9,6 +9,8 @@
   --text-muted: #80868b;
   --accent: #d1477a;
   --accent-tint: #fce8f0;
+  --accent-purple: #6b46c1;
+  --accent-purple-tint: #efe7fb;
   --font-display: "Fredoka", "Inter", sans-serif;
   --green: #137333;
   --green-tint: #e6f4ea;
@@ -179,11 +181,22 @@ body {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 8.5rem 1.5rem 2rem;
-  border-bottom: 1px solid var(--border);
   background-size: cover;
   background-position: center 30%;
   background-repeat: no-repeat;
   text-align: center;
+}
+
+/* A thin purple-to-accent gradient bar in place of a plain border, echoing
+   the loading screen's purple so the two feel like one continuous app. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent));
 }
 
 .eyebrow {
@@ -301,6 +314,7 @@ main {
   flex-shrink: 0;
   fill: var(--accent);
   transform-origin: center bottom;
+  filter: drop-shadow(0 2px 10px rgba(107, 70, 193, 0.35));
   animation:
     countdown-pop-in 0.5s ease-out,
     countdown-float 3.5s ease-in-out 0.5s infinite;
@@ -544,6 +558,8 @@ main {
   transform: translate(-50%, -50%);
   animation: sparkle-burst 0.55s ease-out forwards;
 }
+
+.sparkle--purple { color: var(--accent-purple); }
 
 @keyframes sparkle-burst {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
