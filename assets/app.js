@@ -45,6 +45,7 @@
     tab: "eats", // "eats" | "adventures" | "reservations"
     park: "Disneyland",
     selectedAreas: { eats: new Set(), adventures: new Set() },
+    selectedCategories: { eats: new Set(), adventures: new Set() },
     eats: [],
     reservations: [],
     checked: new Map(), // key -> boolean
@@ -60,6 +61,7 @@
     tabButtons: document.querySelectorAll(".tab"),
     filterBar: document.getElementById("filter-bar"),
     areaChips: document.getElementById("area-chips"),
+    categoryChips: document.getElementById("category-chips"),
     resultsTitle: document.getElementById("results-title"),
     resultCount: document.getElementById("result-count"),
     cardGrid: document.getElementById("card-grid"),
@@ -165,6 +167,7 @@
       Location: str(pickField(raw, "Location"), "Not listed"),
       Priority: Math.round(num(pickField(raw, "Priority"), 3)),
       Eats: bool01(pickField(raw, "Eats?")),
+      Category: str(pickField(raw, "Category"), "Uncategorized"),
       Key: itemKey(Park, Area, Food),
     };
   }
@@ -494,6 +497,7 @@
         b.setAttribute("aria-selected", active ? "true" : "false");
       });
       state.selectedAreas[state.tab].clear();
+      state.selectedCategories[state.tab].clear();
       state.park = park;
       els.parkToggle.querySelectorAll(".seg").forEach((b) => b.classList.toggle("active", b.dataset.park === park));
 
@@ -720,6 +724,33 @@
     });
   }
 
+  function renderCategoryChips(categories) {
+    els.categoryChips.innerHTML = "";
+
+    if (categories.length === 0) {
+      els.categoryChips.innerHTML = '<span class="chip-placeholder">No categories found for this park yet.</span>';
+      return;
+    }
+
+    const selected = state.selectedCategories[state.tab];
+
+    categories.forEach((category) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip" + (selected.has(category) ? " active" : "");
+      btn.textContent = category;
+      btn.addEventListener("click", () => {
+        if (selected.has(category)) {
+          selected.delete(category);
+        } else {
+          selected.add(category);
+        }
+        render();
+      });
+      els.categoryChips.appendChild(btn);
+    });
+  }
+
   function renderCards(rows) {
     els.cardGrid.innerHTML = "";
 
@@ -792,10 +823,16 @@
       const scoped = getFilteredByParkAndTab();
       const areas = [...new Set(scoped.map((r) => r.Area))].sort((a, b) => a.localeCompare(b));
       renderAreaChips(areas);
+      const categories = [...new Set(scoped.map((r) => r.Category))].sort((a, b) => a.localeCompare(b));
+      renderCategoryChips(categories);
 
-      const selected = state.selectedAreas[state.tab];
-      const effectiveAreas = selected.size ? [...selected] : areas;
-      const filtered = scoped.filter((r) => effectiveAreas.includes(r.Area));
+      const selectedAreas = state.selectedAreas[state.tab];
+      const effectiveAreas = selectedAreas.size ? [...selectedAreas] : areas;
+      const selectedCategories = state.selectedCategories[state.tab];
+      const effectiveCategories = selectedCategories.size ? [...selectedCategories] : categories;
+      const filtered = scoped.filter(
+        (r) => effectiveAreas.includes(r.Area) && effectiveCategories.includes(r.Category)
+      );
 
       els.resultsTitle.textContent = state.tab === "eats" ? "So you should try…" : "So you should explore…";
       count = renderCards(filtered);
