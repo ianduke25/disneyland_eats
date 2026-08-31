@@ -46,6 +46,91 @@
 
 [hidden] { display: none !important; }
 
+/* ─────────── LOADING SCREEN ─────────── */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 35%, #3a2a52 0%, #201530 55%, #0f0a18 100%);
+  transition: opacity 0.5s ease;
+}
+
+.loading-screen.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-screen__ghost {
+  width: 4.5rem;
+  height: 4.5rem;
+  flex-shrink: 0;
+  fill: #ece3ff;
+  opacity: 0.9;
+  animation: countdown-float 3.5s ease-in-out infinite;
+}
+
+.loading-screen__eye { fill: #201530; }
+
+.loading-screen__mouth {
+  fill: none;
+  stroke: #201530;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.loading-screen__text {
+  margin: 0;
+  font-family: "Creepster", "Fredoka", cursive;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: #d9c4ff;
+  text-shadow: 0 0 10px rgba(180, 130, 255, 0.55), 0 0 2px rgba(0, 0, 0, 0.6);
+  font-size: clamp(1.4rem, 4.5vw, 2.1rem);
+}
+
+.loading-screen__line { display: block; }
+
+.loading-screen__text .word {
+  display: inline-block;
+  opacity: 0;
+  animation: word-fade-in 0.6s ease-out forwards;
+  animation-delay: calc(var(--i) * 0.18s);
+}
+
+.loading-screen__text .word--dots {
+  animation: word-fade-in 0.6s ease-out forwards calc(var(--i) * 0.18s),
+    dots-flicker 1.6s ease-in-out calc(var(--i) * 0.18s + 0.6s) infinite;
+}
+
+@keyframes word-fade-in {
+  0% { opacity: 0; transform: translateY(10px) scale(0.94); filter: blur(3px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes dots-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen, .loading-screen__ghost, .loading-screen__text .word {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
 html { scroll-behavior: smooth; }
 
 /* ─────────── PAGE ENTRANCE ─────────── */
