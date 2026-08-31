@@ -17,7 +17,9 @@ published as CSV — no backend or build step required.
 ### Eats/Adventures sheet
 
 Expected columns: `Park`, `Area`, `Food`, `Location`, `Priority` (1–3),
-and `Eats?` (`1` for food items, `0` for adventures/attractions).
+`Eats?` (`1` for food items, `0` for adventures/attractions), and
+`Category` (e.g. "Snack", "Table Service", "Thrill Ride" — filterable
+in the app alongside area, under "You want…").
 
 ### Reservations sheet
 
