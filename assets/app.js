@@ -502,7 +502,9 @@
       renderAll();
     } catch (err) {
       console.warn("Couldn't save entry:", err);
-      els.addEntryError.textContent = "Couldn't save that — check your connection and try again.";
+      els.addEntryError.textContent = err && err.message
+        ? `Couldn't save that: ${err.message}`
+        : "Couldn't save that — check your connection and try again.";
       els.addEntryError.hidden = false;
     } finally {
       els.addEntrySubmit.disabled = false;
